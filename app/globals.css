@@ -3,21 +3,269 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Neutrals */
+  --void:       #080808;
+  --ink:        #111111;
+  --stone:      #1e1e1e;
+  --ash:        #2d2d2d;
+  --fog:        #666666;
+  --cloud:      #aaaaaa;
+  --paper:      #f4f0e8;
+  --white:      #ffffff;
+
+  /* Brand Accent — Flot signature */
+  --flot:       #c8f542;
+  --flot-dim:   #a8d430;
+  --flot-glow:  rgba(200, 245, 66, 0.15);
+
+  /* Vertical Accent Colors */
+  --hotel:      #d4a96a;
+  --restaurant: #e85d3a;
+  --travel:     #4a9eff;
+  --fashion:    #c084fc;
+
+  /* Semantic */
+  --success:    #22c55e;
+  --error:      #ef4444;
+  --warning:    #f59e0b;
+
+  /* Typography Scale */
+  --text-xs:    clamp(0.7rem, 1.5vw, 0.75rem);
+  --text-sm:    clamp(0.85rem, 1.8vw, 0.9rem);
+  --text-md:    clamp(1rem, 2vw, 1.1rem);
+  --text-lg:    clamp(1.25rem, 3vw, 1.5rem);
+  --text-xl:    clamp(1.8rem, 4vw, 2.5rem);
+  --text-hero:  clamp(3rem, 8vw, 7rem);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:      150ms;
+  --dur-mid:       300ms;
+  --dur-slow:      600ms;
+  --dur-enter:     900ms;
+
+  /* Breakpoints as custom properties for JS access */
+  --bp-sm:  640px;
+  --bp-md:  768px;
+  --bp-lg:  1024px;
+  --bp-xl:  1280px;
+  --bp-2xl: 1536px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base reset & defaults */
+* {
+  box-sizing: border-box;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--paper);
+  background: var(--void);
+  font-family: var(--font-syne), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Selection */
+::selection {
+  background: var(--flot);
+  color: var(--void);
+}
+
+/* Focus styles — uses accent color via CSS custom property */
+:focus-visible {
+  outline: 2px solid var(--accent, var(--flot));
+  outline-offset: 2px;
+}
+
+/* Skip to content link — hidden until focused */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--flot);
+  color: var(--void);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ash);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fog);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Grain texture overlay */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Utility classes */
+.font-display {
+  font-family: var(--font-cormorant), serif;
+}
+
+.font-body {
+  font-family: var(--font-syne), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-jetbrains), monospace;
+}
+
+/* Staggered fade-up animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-up {
+  animation: fadeUp var(--dur-enter) var(--ease-out-expo) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--dur-slow) var(--ease-in-out) both;
+}
+
+/* Stagger children */
+.stagger-children > * {
+  animation: fadeUp var(--dur-enter) var(--ease-out-expo) both;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 560ms; }
+
+/* Word stagger for hero text */
+.stagger-words > span {
+  display: inline-block;
+  animation: fadeUp var(--dur-enter) var(--ease-out-expo) both;
+}
+
+.stagger-words > span:nth-child(1) { animation-delay: 0ms; }
+.stagger-words > span:nth-child(2) { animation-delay: 120ms; }
+.stagger-words > span:nth-child(3) { animation-delay: 240ms; }
+
+/* Glow effect for CTAs */
+.glow-flot {
+  box-shadow: 0 0 20px var(--flot-glow), 0 0 60px var(--flot-glow);
+}
+
+/* Safe area support for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Touch-friendly tap targets: minimum 44x44 */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smooth scroll for the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Hide scrollbar on mobile category tabs */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Focus-within ring for input groups */
+.focus-group:focus-within {
+  box-shadow: 0 0 0 2px var(--flot);
 }
 
 @layer utilities {
