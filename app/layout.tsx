@@ -35,7 +35,23 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Flot — Commerce without friction",
   description:
-    "Multi-vertical commerce platform. Four categories, one checkout, zero friction.",
+    "Multi-vertical commerce platform. Four verticals — Hotel, Restaurant, Travel & Store — one checkout, zero friction.",
+  metadataBase: new URL("https://flot-platform.vercel.app"),
+  openGraph: {
+    title: "Flot — Commerce without friction",
+    description:
+      "Four verticals — Hotel, Restaurant, Travel & Store — one checkout, zero friction.",
+    url: "https://flot-platform.vercel.app",
+    siteName: "Flot Platform",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Flot — Commerce without friction",
+    description:
+      "Four verticals — Hotel, Restaurant, Travel & Store — one checkout, zero friction.",
+  },
 };
 
 export default function RootLayout({
