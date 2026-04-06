@@ -29,7 +29,7 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setShowCheckout(true)}
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full px-6 py-3.5 text-white shadow-2xl transition-transform hover:scale-105"
+            className="fixed bottom-6 right-4 sm:right-6 z-40 flex items-center gap-3 rounded-full px-5 sm:px-6 py-3.5 text-white shadow-2xl transition-transform hover:scale-105 safe-bottom"
             style={{ backgroundColor: accent }}
           >
             <div className="relative">

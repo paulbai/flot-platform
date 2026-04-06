@@ -13,10 +13,13 @@
   --paper:      #f4f0e8;
   --white:      #ffffff;
 
-  /* Brand Accent — Flot signature */
-  --flot:       #c8f542;
-  --flot-dim:   #a8d430;
-  --flot-glow:  rgba(200, 245, 66, 0.15);
+  /* Brand Accent — Flot Mint Green (C40/M0/Y34/K0) */
+  --flot:       #80F0C0;
+  --flot-dim:   #60D4A0;
+  --flot-glow:  rgba(128, 240, 192, 0.15);
+  --flot-dark:  #3D3D3D;
+  --flot-grad-start: #80F0C0;
+  --flot-grad-end:   #5ECFCF;
 
   /* Vertical Accent Colors */
   --hotel:      #d4a96a;
@@ -61,7 +64,7 @@
 body {
   color: var(--paper);
   background: var(--void);
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-satoshi), var(--font-montserrat), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -143,11 +146,13 @@ body {
 
 /* Utility classes */
 .font-display {
-  font-family: var(--font-cormorant), serif;
+  font-family: var(--font-satoshi), var(--font-cormorant), serif;
+  font-weight: 700;
 }
 
 .font-body {
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-satoshi), var(--font-montserrat), sans-serif;
+  font-weight: 500;
 }
 
 .font-mono {

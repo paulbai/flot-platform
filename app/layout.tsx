@@ -1,7 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Montserrat, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import AuthProvider from "@/components/providers/SessionProvider";
 import "./globals.css";
+
+const satoshi = localFont({
+  src: [
+    { path: "../public/fonts/Satoshi-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../public/fonts/Satoshi-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-satoshi",
+  display: "swap",
+});
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -61,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${montserrat.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${satoshi.variable} ${cormorant.variable} ${montserrat.variable} ${jetbrains.variable}`}>
       <body className="grain antialiased">
         <a href="#main-content" className="skip-link">Skip to content</a>
         <AuthProvider>{children}</AuthProvider>

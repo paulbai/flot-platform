@@ -28,8 +28,9 @@ const config: Config = {
         warning: "var(--warning)",
       },
       fontFamily: {
-        display: ["var(--font-cormorant)", "serif"],
-        body: ["var(--font-montserrat)", "sans-serif"],
+        satoshi: ["var(--font-satoshi)", "sans-serif"],
+        display: ["var(--font-satoshi)", "var(--font-cormorant)", "serif"],
+        body: ["var(--font-satoshi)", "var(--font-montserrat)", "sans-serif"],
         mono: ["var(--font-jetbrains)", "monospace"],
       },
       fontSize: {

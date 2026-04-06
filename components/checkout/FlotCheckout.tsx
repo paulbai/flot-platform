@@ -179,7 +179,7 @@ export default function FlotCheckout({
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         ref={drawerRef}
-        className="relative z-10 w-full max-w-[440px] mx-4 flex flex-col max-h-[90vh]"
+        className="relative z-10 w-[calc(100%-1.5rem)] max-w-[440px] mx-auto flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
         aria-label={`${brandName} Checkout`}
@@ -194,9 +194,9 @@ export default function FlotCheckout({
         </button>
 
         {/* White Card */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]" style={{ fontFamily: 'var(--font-montserrat), Montserrat, sans-serif' }}>
+        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]" style={{ fontFamily: 'var(--font-satoshi), var(--font-montserrat), Satoshi, sans-serif' }}>
           {/* Top accent bar */}
-          <div className="h-1" style={{ background: `linear-gradient(90deg, #6ee7b7, #34d399)` }} />
+          <div className="h-1" style={{ background: `linear-gradient(90deg, var(--flot-grad-start, #80F0C0), var(--flot-grad-end, #5ECFCF))` }} />
 
           <div className="overflow-y-auto flex-1">
             <AnimatePresence mode="wait">
@@ -216,8 +216,8 @@ export default function FlotCheckout({
                     </p>
                     <h2 className="text-xl font-bold text-gray-900">{brandName}</h2>
                     <div className="flex items-center justify-center gap-1.5 mt-2">
-                      <img src="/flot-logo.svg" alt="Flot" className="w-5 h-5 rounded" />
-                      <span className="text-xs font-medium text-emerald-600">Verified Merchant</span>
+                      <img src="/flot-logo.png" alt="Flot" className="w-5 h-5 rounded" />
+                      <span className="text-xs font-medium text-[#50C8A0]">Verified Merchant</span>
                     </div>
                   </div>
 
@@ -229,11 +229,11 @@ export default function FlotCheckout({
                       Amount to Pay
                     </p>
                     <div className="flex items-center justify-center gap-4">
-                      <div className="flex items-center gap-1.5 text-emerald-600">
+                      <div className="flex items-center gap-1.5 text-[#50C8A0]">
                         <span className="text-xl font-semibold">{currencyCode}</span>
                         <ChevronDown size={16} />
                       </div>
-                      <span className="text-5xl font-bold text-gray-900 tracking-tight">
+                      <span className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
                         {total.toFixed(2)}
                       </span>
                     </div>
@@ -281,12 +281,12 @@ export default function FlotCheckout({
                         onClick={() => setPaymentMethod('flot')}
                         className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
                           paymentMethod === 'flot'
-                            ? 'border-emerald-400 bg-emerald-50'
+                            ? 'border-[#80F0C0] bg-[#80F0C0]/10'
                             : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          paymentMethod === 'flot' ? 'bg-emerald-400' : 'bg-gray-200'
+                          paymentMethod === 'flot' ? 'bg-[#80F0C0]' : 'bg-gray-200'
                         }`}>
                           <Wallet size={22} className={paymentMethod === 'flot' ? 'text-white' : 'text-gray-500'} />
                         </div>
@@ -294,14 +294,14 @@ export default function FlotCheckout({
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-gray-900">Pay with Flot</p>
                             {savedPayment?.method === 'flot' && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5">Saved</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#50C8A0] bg-[#80F0C0]/20 rounded-full px-2 py-0.5">Saved</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">Instant, zero fees</p>
                         </div>
                         {paymentMethod === 'flot' && (
-                          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <Check size={16} className="text-emerald-500" />
+                          <div className="w-7 h-7 rounded-full bg-[#80F0C0]/20 flex items-center justify-center">
+                            <Check size={16} className="text-[#60D4A0]" />
                           </div>
                         )}
                       </button>
@@ -311,12 +311,12 @@ export default function FlotCheckout({
                         onClick={() => setPaymentMethod('mobile-money')}
                         className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
                           paymentMethod === 'mobile-money'
-                            ? 'border-emerald-400 bg-emerald-50'
+                            ? 'border-[#80F0C0] bg-[#80F0C0]/10'
                             : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          paymentMethod === 'mobile-money' ? 'bg-emerald-400' : 'bg-gray-200'
+                          paymentMethod === 'mobile-money' ? 'bg-[#80F0C0]' : 'bg-gray-200'
                         }`}>
                           <Smartphone size={22} className={paymentMethod === 'mobile-money' ? 'text-white' : 'text-gray-500'} />
                         </div>
@@ -324,7 +324,7 @@ export default function FlotCheckout({
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-gray-900">Mobile Money</p>
                             {savedPayment?.method === 'mobile-money' && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5">Saved</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#50C8A0] bg-[#80F0C0]/20 rounded-full px-2 py-0.5">Saved</span>
                             )}
                           </div>
                           <div className="flex gap-2 mt-0.5">
@@ -333,8 +333,8 @@ export default function FlotCheckout({
                           </div>
                         </div>
                         {paymentMethod === 'mobile-money' && (
-                          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <Check size={16} className="text-emerald-500" />
+                          <div className="w-7 h-7 rounded-full bg-[#80F0C0]/20 flex items-center justify-center">
+                            <Check size={16} className="text-[#60D4A0]" />
                           </div>
                         )}
                       </button>
@@ -344,12 +344,12 @@ export default function FlotCheckout({
                         onClick={() => setPaymentMethod('card')}
                         className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
                           paymentMethod === 'card'
-                            ? 'border-emerald-400 bg-emerald-50'
+                            ? 'border-[#80F0C0] bg-[#80F0C0]/10'
                             : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          paymentMethod === 'card' ? 'bg-emerald-400' : 'bg-gray-200'
+                          paymentMethod === 'card' ? 'bg-[#80F0C0]' : 'bg-gray-200'
                         }`}>
                           <CreditCard size={22} className={paymentMethod === 'card' ? 'text-white' : 'text-gray-500'} />
                         </div>
@@ -357,7 +357,7 @@ export default function FlotCheckout({
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-gray-900">Bank Card</p>
                             {savedPayment?.method === 'card' && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5">•••• {savedPayment.last4}</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#50C8A0] bg-[#80F0C0]/20 rounded-full px-2 py-0.5">•••• {savedPayment.last4}</span>
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
@@ -371,8 +371,8 @@ export default function FlotCheckout({
                           </div>
                         </div>
                         {paymentMethod === 'card' && (
-                          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <Check size={16} className="text-emerald-500" />
+                          <div className="w-7 h-7 rounded-full bg-[#80F0C0]/20 flex items-center justify-center">
+                            <Check size={16} className="text-[#60D4A0]" />
                           </div>
                         )}
                       </button>
@@ -398,7 +398,7 @@ export default function FlotCheckout({
                             const formatted = val.replace(/(\d{4})/g, '$1 ').trim();
                             setCardData((d) => ({ ...d, number: formatted }));
                           }}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                         />
                         <div className="flex gap-3">
                           <input
@@ -410,14 +410,14 @@ export default function FlotCheckout({
                               if (val.length >= 3) val = val.slice(0, 2) + '/' + val.slice(2);
                               setCardData((d) => ({ ...d, expiry: val }));
                             }}
-                            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none"
+                            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                           />
                           <input
                             type="text"
                             placeholder="CVV"
                             value={cardData.cvv}
                             onChange={(e) => setCardData((d) => ({ ...d, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                            className="w-24 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none"
+                            className="w-24 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                           />
                         </div>
                         <input
@@ -425,7 +425,7 @@ export default function FlotCheckout({
                           placeholder="Cardholder Name"
                           value={cardData.name}
                           onChange={(e) => setCardData((d) => ({ ...d, name: e.target.value }))}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                         />
                       </div>
                     </motion.div>
@@ -436,7 +436,7 @@ export default function FlotCheckout({
                     onClick={handlePay}
                     disabled={orderItems.length === 0}
                     className="w-full mt-6 py-4 rounded-2xl text-base font-bold text-gray-900 transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: '#6ee7b7' }}
+                    style={{ backgroundColor: '#80F0C0' }}
                   >
                     Pay {currencyCode} {total.toFixed(2)} (${(total / 24).toFixed(2)})
                   </button>
@@ -456,7 +456,7 @@ export default function FlotCheckout({
                     transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                     className="mb-6"
                   >
-                    <Loader2 size={48} className="text-emerald-400" />
+                    <Loader2 size={48} className="text-[#80F0C0]" />
                   </motion.div>
                   <p className="text-sm text-gray-600 font-medium">Processing payment...</p>
                   <p className="text-xs text-gray-400 mt-1">Please wait</p>
@@ -473,14 +473,14 @@ export default function FlotCheckout({
                   className="p-6 sm:p-8"
                 >
                   {/* Top bar */}
-                  <div className="h-1 -mt-6 sm:-mt-8 -mx-6 sm:-mx-8 mb-6" style={{ background: 'linear-gradient(90deg, #6ee7b7, #34d399)' }} />
+                  <div className="h-1 -mt-6 sm:-mt-8 -mx-6 sm:-mx-8 mb-6" style={{ background: 'linear-gradient(90deg, var(--flot-grad-start, #80F0C0), var(--flot-grad-end, #5ECFCF))' }} />
 
                   <div className="text-center">
                     {/* Checkmark */}
                     <div className="relative mx-auto w-24 h-24 mb-6">
-                      <div className="absolute inset-0 rounded-full bg-emerald-100 animate-ping opacity-20" />
-                      <div className="absolute inset-2 rounded-full bg-emerald-50" />
-                      <div className="relative w-full h-full rounded-full bg-emerald-400 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full bg-[#80F0C0]/20 animate-ping opacity-20" />
+                      <div className="absolute inset-2 rounded-full bg-[#80F0C0]/10" />
+                      <div className="relative w-full h-full rounded-full bg-[#80F0C0] flex items-center justify-center">
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
@@ -510,7 +510,7 @@ export default function FlotCheckout({
                             onClick={() => setReceiptMethod('email')}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                               receiptMethod === 'email'
-                                ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                                ? 'border-[#80F0C0] bg-[#80F0C0]/10 text-[#40B080]'
                                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
                             }`}
                           >
@@ -521,7 +521,7 @@ export default function FlotCheckout({
                             onClick={() => setReceiptMethod('whatsapp')}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                               receiptMethod === 'whatsapp'
-                                ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                                ? 'border-[#80F0C0] bg-[#80F0C0]/10 text-[#40B080]'
                                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
                             }`}
                           >
@@ -541,12 +541,12 @@ export default function FlotCheckout({
                                 placeholder={receiptMethod === 'email' ? 'Enter email address' : 'Enter WhatsApp number'}
                                 value={receiptValue}
                                 onChange={(e) => setReceiptValue(e.target.value)}
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-emerald-400 outline-none"
+                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] outline-none"
                               />
                               <button
                                 onClick={handleSendReceipt}
                                 disabled={!receiptValue.trim()}
-                                className="px-4 py-3 rounded-xl bg-emerald-400 text-white text-sm font-semibold disabled:opacity-40 hover:bg-emerald-500 transition-colors"
+                                className="px-4 py-3 rounded-xl bg-[#80F0C0] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#60D4A0] transition-colors"
                               >
                                 Send
                               </button>
@@ -560,7 +560,7 @@ export default function FlotCheckout({
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="mb-6 flex items-center justify-center gap-2 text-sm text-emerald-600"
+                        className="mb-6 flex items-center justify-center gap-2 text-sm text-[#50C8A0]"
                       >
                         <Check size={16} />
                         <span>Receipt sent to {receiptValue}</span>
@@ -569,9 +569,9 @@ export default function FlotCheckout({
 
                     {/* Save payment method */}
                     {showSaveCard && !cardSaved && (
-                      <div className="mb-6 p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50">
+                      <div className="mb-6 p-4 rounded-2xl border-2 border-[#80F0C0]/30 bg-[#80F0C0]/10">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#80F0C0]/20 flex items-center justify-center shrink-0">
                             <span className="text-sm">⚡</span>
                           </div>
                           <div className="text-left">
@@ -589,7 +589,7 @@ export default function FlotCheckout({
                           <button
                             onClick={handleSavePayment}
                             disabled={savingCard}
-                            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-[#60D4A0] hover:bg-[#60D4A0] transition-colors disabled:opacity-50"
                           >
                             {savingCard
                               ? 'Saving...'
@@ -617,7 +617,7 @@ export default function FlotCheckout({
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="mb-6 flex items-center justify-center gap-2 text-sm text-emerald-600"
+                        className="mb-6 flex items-center justify-center gap-2 text-sm text-[#50C8A0]"
                       >
                         <Check size={16} />
                         <span>
@@ -653,7 +653,7 @@ export default function FlotCheckout({
                     <button
                       onClick={handleDone}
                       className="w-full py-4 rounded-2xl text-base font-bold text-gray-900 transition-all hover:opacity-90"
-                      style={{ backgroundColor: '#6ee7b7' }}
+                      style={{ backgroundColor: '#80F0C0' }}
                     >
                       Done
                     </button>
@@ -678,7 +678,7 @@ export default function FlotCheckout({
                     <div className="flex gap-3">
                       <button
                         onClick={() => setStep('review')}
-                        className="flex-1 py-3.5 rounded-2xl text-sm font-bold bg-emerald-400 text-gray-900 hover:opacity-90 transition-opacity"
+                        className="flex-1 py-3.5 rounded-2xl text-sm font-bold bg-[#80F0C0] text-gray-900 hover:opacity-90 transition-opacity"
                       >
                         Try Again
                       </button>
@@ -699,9 +699,9 @@ export default function FlotCheckout({
         {/* Bottom badge */}
         <div className="mt-4 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2.5">
-            <Lock size={14} className="text-emerald-400" />
+            <Lock size={14} className="text-[#80F0C0]" />
             <span className="text-sm font-medium text-white/80">
-              Secured by <span className="text-emerald-400 font-semibold">Flot</span>
+              Secured by <span className="text-[#80F0C0] font-semibold">Flot</span>
             </span>
           </div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/30">

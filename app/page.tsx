@@ -107,8 +107,8 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50" style={{ backgroundColor: 'rgba(8, 8, 8, 0.85)', backdropFilter: 'blur(16px)' }}>
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/flot-logo.svg" alt="Flot" className="w-8 h-8 rounded-lg" />
-            <span className="font-display text-2xl font-bold tracking-tight text-[var(--flot)]">Flot</span>
+            <img src="/flot-logo.png" alt="Flot" className="w-8 h-8 rounded-lg" />
+            <span className="font-display text-2xl font-bold tracking-tight text-[var(--flot)] font-satoshi">Flot</span>
           </Link>
           <div className="flex items-center gap-3">
             <button
@@ -119,9 +119,10 @@ export default function Home() {
             </button>
             <button
               onClick={() => requireAuth('/builder')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-[var(--flot)] text-[var(--void)] hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-[var(--flot)] text-[var(--void)] hover:opacity-90 transition-opacity"
             >
-              Create Your Site
+              <span className="hidden sm:inline">Create Your Site</span>
+              <span className="sm:hidden">Get Started</span>
             </button>
           </div>
         </div>
@@ -138,7 +139,7 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.03 }}
           transition={{ duration: 2, delay: 0.5 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-display font-bold text-[20vw] text-white pointer-events-none select-none whitespace-nowrap"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-display font-bold text-[20vw] text-white pointer-events-none select-none whitespace-nowrap overflow-hidden max-w-full"
         >
           FLOT
         </motion.div>
@@ -155,7 +156,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display font-medium leading-[0.9] tracking-tight mb-6"
+            className="font-satoshi font-bold leading-[0.9] tracking-tight mb-6"
             style={{ fontSize: 'var(--text-hero)' }}
           >
             <span className="text-[var(--paper)]">Get a free </span>
@@ -168,7 +169,7 @@ export default function Home() {
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="text-[var(--text-md)] text-[var(--cloud)] font-body max-w-lg mb-4"
+            className="text-[var(--text-md)] text-[var(--cloud)] font-satoshi font-medium max-w-lg mb-4"
           >
             <strong className="text-[var(--paper)]">Plus 1 year hosting with Flot Business.</strong>{' '}
             Start accepting payments from:
@@ -179,7 +180,7 @@ export default function Home() {
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="text-[var(--text-sm)] text-[var(--cloud)] font-body max-w-lg mb-4 space-y-1"
+            className="text-[var(--text-sm)] text-[var(--cloud)] font-satoshi font-medium max-w-lg mb-4 space-y-1"
           >
             <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[var(--flot)]" /> Flot</li>
             <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[var(--flot)]" /> Mobile Money</li>
@@ -191,7 +192,7 @@ export default function Home() {
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="text-[var(--text-sm)] text-[var(--fog)] font-body mb-8"
+            className="text-[var(--text-sm)] text-[var(--fog)] font-satoshi mb-8"
           >
             Call <a href="tel:+23277800100" className="text-[var(--flot)] font-semibold hover:underline">+23277800100</a>
           </motion.p>
@@ -221,7 +222,7 @@ export default function Home() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer"
           onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <span className="text-[10px] font-body uppercase tracking-[0.3em] text-[var(--fog)]">Scroll</span>
+          <span className="text-[10px] font-satoshi uppercase tracking-[0.3em] text-[var(--fog)]">Scroll</span>
           <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
             <ChevronDown size={16} className="text-[var(--fog)]" />
           </motion.div>
@@ -229,7 +230,7 @@ export default function Home() {
       </section>
 
       {/* How it Works */}
-      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -237,10 +238,10 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em] text-[var(--flot)]">
+            <span className="text-[var(--text-xs)] font-satoshi font-bold uppercase tracking-[0.25em] text-[var(--flot)]">
               How it works
             </span>
-            <h2 className="font-display text-[var(--text-xl)] text-[var(--paper)] font-medium mt-3">
+            <h2 className="font-satoshi text-[var(--text-xl)] text-[var(--paper)] font-bold mt-3">
               Three steps to your business page
             </h2>
           </motion.div>
@@ -263,22 +264,22 @@ export default function Home() {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[var(--flot)]/30 mb-4">
                 <span className="font-mono text-sm text-[var(--flot)]">{item.step}</span>
               </div>
-              <h3 className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium mb-2">{item.title}</h3>
-              <p className="text-[var(--text-sm)] text-[var(--fog)] font-body leading-relaxed">{item.desc}</p>
+              <h3 className="font-satoshi text-[var(--text-md)] text-[var(--paper)] font-bold mb-2">{item.title}</h3>
+              <p className="text-[var(--text-sm)] text-[var(--fog)] font-satoshi leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20">
         <div className="max-w-[1400px] mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 sm:mb-16">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em] text-[var(--flot)]">
+              <span className="text-[var(--text-xs)] font-satoshi font-bold uppercase tracking-[0.25em] text-[var(--flot)]">
                 Features
               </span>
-              <h2 className="font-display text-[var(--text-xl)] text-[var(--paper)] font-medium mt-3">
+              <h2 className="font-satoshi text-[var(--text-xl)] text-[var(--paper)] font-bold mt-3">
                 Everything you need to go live
               </h2>
             </motion.div>
@@ -299,7 +300,7 @@ export default function Home() {
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-[var(--flot)]/10">
                     <Icon size={20} className="text-[var(--flot)]" />
                   </div>
-                  <h3 className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium mb-2">{feature.title}</h3>
+                  <h3 className="font-satoshi text-[var(--text-md)] text-[var(--paper)] font-bold mb-2">{feature.title}</h3>
                   <p className="text-[var(--text-xs)] text-[var(--fog)] leading-relaxed">{feature.description}</p>
                 </motion.div>
               );
@@ -309,23 +310,23 @@ export default function Home() {
       </section>
 
       {/* Flot Checkout — Standalone */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20 overflow-hidden">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             {/* Left: Info */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
             >
-              <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em] text-[var(--flot)]">
+              <span className="text-[var(--text-xs)] font-satoshi font-bold uppercase tracking-[0.25em] text-[var(--flot)]">
                 Already have a website?
               </span>
-              <h2 className="font-display text-[var(--text-xl)] text-[var(--paper)] font-medium mt-3 mb-4">
+              <h2 className="font-satoshi text-[var(--text-xl)] text-[var(--paper)] font-bold mt-3 mb-4">
                 Add Flot Checkout to any site
               </h2>
-              <p className="text-[var(--text-sm)] text-[var(--fog)] font-body leading-relaxed mb-6 max-w-md">
+              <p className="text-[var(--text-sm)] text-[var(--fog)] font-satoshi leading-relaxed mb-6 max-w-md">
                 Drop our checkout into your existing website with a single link. Accept payments via Flot, Mobile Money, and Bank Cards — no code changes required.
               </p>
 
@@ -345,10 +346,10 @@ export default function Home() {
                     transition={{ delay: 0.1 + i * 0.06, duration: 0.5 }}
                     className="flex items-center gap-3"
                   >
-                    <div className="w-5 h-5 rounded-full bg-emerald-400/10 flex items-center justify-center shrink-0">
-                      <Check size={12} className="text-emerald-400" />
+                    <div className="w-5 h-5 rounded-full bg-[var(--flot)]/10 flex items-center justify-center shrink-0">
+                      <Check size={12} className="text-[var(--flot)]" />
                     </div>
-                    <span className="text-sm text-[var(--cloud)] font-body">{item}</span>
+                    <span className="text-sm text-[var(--cloud)] font-satoshi">{item}</span>
                   </motion.div>
                 ))}
               </div>
@@ -356,7 +357,7 @@ export default function Home() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/checkout-preview"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold bg-emerald-400 text-gray-900 hover:bg-emerald-300 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold bg-[var(--flot)] text-gray-900 hover:opacity-90 transition-colors"
                 >
                   Try Live Demo <ArrowRight size={16} />
                 </Link>
@@ -382,16 +383,16 @@ export default function Home() {
             >
               <div className="w-full max-w-[380px]">
                 {/* Checkout card */}
-                <div className="bg-white rounded-3xl overflow-hidden shadow-2xl shadow-emerald-400/10">
-                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #6ee7b7, #34d399)' }} />
+                <div className="bg-white rounded-3xl overflow-hidden shadow-2xl shadow-[rgba(128,240,192,0.1)]">
+                  <div className="h-1" style={{ background: 'linear-gradient(90deg, var(--flot-grad-start), var(--flot-grad-end))' }} />
                   <div className="p-6">
                     {/* Header */}
                     <div className="text-center mb-5">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400 mb-1">Paying to</p>
                       <h3 className="text-lg font-bold text-gray-900">Your Business</h3>
                       <div className="flex items-center justify-center gap-1.5 mt-1.5">
-                        <img src="/flot-logo.svg" alt="Flot" className="w-4 h-4 rounded" />
-                        <span className="text-[10px] font-medium text-emerald-600">Verified Merchant</span>
+                        <img src="/flot-logo.png" alt="Flot" className="w-4 h-4 rounded" />
+                        <span className="text-[10px] font-medium text-[var(--flot-dim)]">Verified Merchant</span>
                       </div>
                     </div>
 
@@ -401,7 +402,7 @@ export default function Home() {
                     <div className="text-center mb-5">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400 mb-2">Amount to Pay</p>
                       <div className="flex items-center justify-center gap-3">
-                        <span className="text-base font-semibold text-emerald-600">Le</span>
+                        <span className="text-base font-semibold text-[var(--flot-dim)]">Le</span>
                         <span className="text-4xl font-bold text-gray-900 tracking-tight">250.00</span>
                       </div>
                       <p className="text-xs text-gray-400 mt-1">USD 10.42</p>
@@ -411,16 +412,16 @@ export default function Home() {
 
                     {/* Payment methods */}
                     <div className="space-y-2">
-                      <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50">
-                        <div className="w-9 h-9 rounded-lg bg-emerald-400 flex items-center justify-center">
+                      <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-[var(--flot)] bg-[var(--flot)]/10">
+                        <div className="w-9 h-9 rounded-lg bg-[var(--flot)] flex items-center justify-center">
                           <Wallet size={18} className="text-white" />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-gray-900">Pay with Flot</p>
                           <p className="text-[10px] text-gray-500">Instant, zero fees</p>
                         </div>
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                          <Check size={12} className="text-emerald-500" />
+                        <div className="w-5 h-5 rounded-full bg-[var(--flot)]/20 flex items-center justify-center">
+                          <Check size={12} className="text-[var(--flot)]" />
                         </div>
                       </div>
                       <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50">
@@ -455,7 +456,7 @@ export default function Home() {
                     </div>
 
                     {/* Pay button */}
-                    <button className="w-full mt-5 py-3.5 rounded-2xl text-sm font-bold text-gray-900 bg-emerald-300 cursor-default">
+                    <button className="w-full mt-5 py-3.5 rounded-2xl text-sm font-bold text-gray-900 bg-[var(--flot)] cursor-default">
                       Pay Le 250.00 ($10.42)
                     </button>
                   </div>
@@ -464,9 +465,9 @@ export default function Home() {
                 {/* Bottom badge */}
                 <div className="mt-4 flex flex-col items-center gap-1.5">
                   <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2">
-                    <Lock size={12} className="text-emerald-400" />
+                    <Lock size={12} className="text-[var(--flot)]" />
                     <span className="text-xs font-medium text-white/70">
-                      Secured by <span className="text-emerald-400 font-semibold">Flot</span>
+                      Secured by <span className="text-[var(--flot)] font-semibold">Flot</span>
                     </span>
                   </div>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/20">
@@ -480,23 +481,23 @@ export default function Home() {
       </section>
 
       {/* Template Selection - Get Started */}
-      <section id="get-started" className="py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20">
+      <section id="get-started" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-[var(--ash)]/20">
         <div className="max-w-[1400px] mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 sm:mb-16">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em] text-[var(--flot)]">
+              <span className="text-[var(--text-xs)] font-satoshi font-bold uppercase tracking-[0.25em] text-[var(--flot)]">
                 Get Started
               </span>
-              <h2 className="font-display text-[var(--text-xl)] text-[var(--paper)] font-medium mt-3 mb-4">
+              <h2 className="font-satoshi text-[var(--text-xl)] text-[var(--paper)] font-bold mt-3 mb-4">
                 Choose your business type
               </h2>
-              <p className="text-[var(--text-sm)] text-[var(--fog)] font-body max-w-md mx-auto">
+              <p className="text-[var(--text-sm)] text-[var(--fog)] font-satoshi max-w-md mx-auto">
                 Pick a template to start building your site. Everything is fully customizable.
               </p>
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
             {verticals.map((v, i) => {
               const Icon = v.icon;
               const isHovered = hoveredVertical === v.key;
@@ -514,7 +515,7 @@ export default function Home() {
                   style={{ borderColor: isHovered && !v.comingSoon ? v.color + '60' : '' }}
                 >
                   {/* Background image */}
-                  <div className="relative aspect-[3/4]">
+                  <div className="relative aspect-[3/4] sm:aspect-[3/4]">
                     <div
                       className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 ${v.comingSoon ? 'grayscale' : 'group-hover:scale-110'}`}
                       style={{ backgroundImage: `url(${v.image})` }}
@@ -536,15 +537,15 @@ export default function Home() {
                     <div className="mb-3 w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: v.color + '20' }}>
                       <Icon size={20} style={{ color: v.color }} />
                     </div>
-                    <h3 className="font-display text-lg text-white font-medium mb-1">{v.label}</h3>
-                    <p className="text-xs text-white/60 font-body mb-4">{v.description}</p>
+                    <h3 className="font-satoshi text-lg text-white font-bold mb-1">{v.label}</h3>
+                    <p className="text-xs text-white/60 font-satoshi mb-4">{v.description}</p>
                     {v.comingSoon ? (
-                      <span className="text-xs font-body font-semibold uppercase tracking-wider text-white/40">
+                      <span className="text-xs font-satoshi font-bold uppercase tracking-wider text-white/40">
                         Coming Soon
                       </span>
                     ) : (
                       <div
-                        className="flex items-center gap-2 text-xs font-body font-semibold uppercase tracking-wider transition-all"
+                        className="flex items-center gap-2 text-xs font-satoshi font-bold uppercase tracking-wider transition-all"
                         style={{ color: v.color }}
                       >
                         Start Building <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
@@ -563,15 +564,15 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <img src="/flot-logo.svg" alt="Flot" className="w-7 h-7 rounded-lg" />
+              <img src="/flot-logo.png" alt="Flot" className="w-7 h-7 rounded-lg" />
               <span className="font-display text-xl font-bold text-[var(--flot)]">Flot</span>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
               <button onClick={() => requireAuth('/builder')} className="text-sm text-[var(--fog)] hover:text-white transition-colors">My Sites</button>
-              <Link href="/hotel" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Hotel Demo</Link>
-              <Link href="/restaurant" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Restaurant Demo</Link>
-              <Link href="/store" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Store Demo</Link>
-              <Link href="/travel" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Travel Demo</Link>
+              <Link href="/hotel" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Hotel</Link>
+              <Link href="/restaurant" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Restaurant</Link>
+              <Link href="/store" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Store</Link>
+              <Link href="/travel" className="text-sm text-[var(--fog)] hover:text-white transition-colors">Travel</Link>
             </div>
             <span className="font-mono text-[10px] text-[var(--fog)]/50 uppercase tracking-wider">
               Commerce without friction

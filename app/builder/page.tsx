@@ -295,7 +295,7 @@ export default function BuilderDashboard() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111] border border-[#222] rounded-xl p-6 w-full max-w-lg"
+              className="bg-[#111] border border-[#222] rounded-xl p-4 sm:p-6 w-[calc(100%-2rem)] max-w-lg mx-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">

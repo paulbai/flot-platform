@@ -82,7 +82,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative z-10 w-full max-w-[420px] mx-4"
+            className="relative z-10 w-[calc(100%-2rem)] max-w-[420px] mx-auto"
           >
             <div className="bg-[#222] border border-[#444] rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
               {/* Top accent */}

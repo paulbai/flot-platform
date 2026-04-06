@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
                 <label className="block text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider mb-3" style={{ color: '#666' }}>
                   Color {selectedColor && <span className="normal-case tracking-normal font-normal">- {selectedColor}</span>}
                 </label>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   {product.colors.map((color) => (
                     <button
                       key={color}
@@ -220,7 +220,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Button
                 variant="accent"
                 size="lg"

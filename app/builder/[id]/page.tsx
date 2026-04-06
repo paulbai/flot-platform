@@ -435,7 +435,7 @@ export default function SiteEditorPage() {
           <ArrowLeft className="w-4 h-4" />
         </button>
 
-        <span className="text-sm font-medium truncate max-w-[180px]">{site.brand.businessName}</span>
+        <span className="text-sm font-medium truncate max-w-[100px] sm:max-w-[180px]">{site.brand.businessName}</span>
 
         <span
           className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
@@ -484,9 +484,9 @@ export default function SiteEditorPage() {
       </div>
 
       {/* ─── Main Area ─── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* ─── Sidebar ─── */}
-        <aside className="w-[320px] shrink-0 border-r border-[#1a1a1a] bg-[#0a0a0a] overflow-y-auto">
+        <aside className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-[#1a1a1a] bg-[#0a0a0a] overflow-y-auto max-h-[50vh] md:max-h-none">
           {/* Site header */}
           <div className="px-4 py-3 border-b border-[#1a1a1a]">
             <h2 className="text-sm font-semibold truncate">{site.brand.businessName}</h2>
@@ -1369,7 +1369,7 @@ export default function SiteEditorPage() {
         </aside>
 
         {/* ─── Preview Area ─── */}
-        <div className="flex-1 bg-[#050505] overflow-hidden relative">
+        <div className="flex-1 min-h-[50vh] bg-[#050505] overflow-hidden relative">
           <div className="absolute top-3 right-3 z-10">
             {site.status === 'published' && (
               <button

@@ -74,7 +74,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
               )}
               <form
                 onSubmit={(e) => e.preventDefault()}
-                className="flex gap-2"
+                className="flex flex-col sm:flex-row gap-2"
               >
                 <input
                   type="email"
