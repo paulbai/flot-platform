@@ -186,7 +186,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     extraClass?: string,
     extraStyle?: React.CSSProperties,
   ) {
-    const cls = `${borderRadius} ${extraClass ?? ''}`;
+    const cls = `site-card ${borderRadius} ${extraClass ?? ''}`;
     const sty = { ...cardStyle, ...extraStyle };
 
     if (cardEffect === 'tilt-cards') {
@@ -243,7 +243,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     return (
       <section
         id="about"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -303,7 +303,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[180px]"
                     >
                       <FlipCard
-                        className={`${borderRadius} border border-white/10 min-h-[180px]`}
+                        className={`site-card ${borderRadius} border border-white/10 min-h-[180px]`}
                         style={cardStyle}
                         front={
                           <>
@@ -390,7 +390,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     return (
       <section
         id="about"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -481,7 +481,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     return (
       <section
         id="about"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -504,7 +504,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[220px]"
                     >
                       <FlipCard
-                        className={`${borderRadius} border border-white/10 min-h-[220px]`}
+                        className={`site-card ${borderRadius} border border-white/10 min-h-[220px]`}
                         style={cardStyle}
                         front={
                           <>
@@ -591,7 +591,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     return (
       <section
         id="about"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         {/* Full-width image with text overlay */}
@@ -682,7 +682,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[180px]"
                     >
                       <FlipCard
-                        className={`${borderRadius} border border-white/10 min-h-[180px]`}
+                        className={`site-card ${borderRadius} border border-white/10 min-h-[180px]`}
                         style={cardStyle}
                         front={
                           <>
@@ -769,7 +769,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
     return (
       <section
         id="about"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

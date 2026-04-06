@@ -163,7 +163,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
           const card = (
             <motion.div
               key={idx}
-              className={`group relative cursor-pointer overflow-hidden ${borderRadius} ${getSpanClass(idx)}`}
+              className={`site-card group relative cursor-pointer overflow-hidden ${borderRadius} ${getSpanClass(idx)}`}
               style={itemTransform}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -226,7 +226,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
             const card = (
               <motion.div
                 key={idx}
-                className={`group relative flex-shrink-0 cursor-pointer overflow-hidden snap-start ${borderRadius}`}
+                className={`site-card group relative flex-shrink-0 cursor-pointer overflow-hidden snap-start ${borderRadius}`}
                 style={{
                   width: 'clamp(300px, 40vw, 400px)',
                   height: '300px',
@@ -293,7 +293,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
           const card = (
             <motion.div
               key={idx}
-              className={`group relative cursor-pointer overflow-hidden ${borderRadius}`}
+              className={`site-card group relative cursor-pointer overflow-hidden ${borderRadius}`}
               style={{ aspectRatio: '4/3', ...itemStyle }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -336,7 +336,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
       <div className="space-y-4">
         {/* Hero image */}
         <motion.div
-          className={`group relative cursor-pointer overflow-hidden ${borderRadius}`}
+          className={`site-card group relative cursor-pointer overflow-hidden ${borderRadius}`}
           style={{
             width: '100%',
             aspectRatio: '16/9',
@@ -390,7 +390,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
             const card = (
               <motion.div
                 key={originalIdx}
-                className={`group relative flex-shrink-0 cursor-pointer overflow-hidden ${borderRadius} ring-2 ${
+                className={`site-card group relative flex-shrink-0 cursor-pointer overflow-hidden ${borderRadius} ring-2 ${
                   originalIdx === heroIdx ? 'ring-white/60' : 'ring-transparent'
                 } hover:ring-white/40 transition-all`}
                 style={{ width: '120px', height: '80px', ...itemStyle }}
@@ -441,7 +441,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
             const card = (
               <motion.div
                 key={idx}
-                className={`group relative flex-shrink-0 cursor-pointer overflow-hidden snap-center ${borderRadius}`}
+                className={`site-card group relative flex-shrink-0 cursor-pointer overflow-hidden snap-center ${borderRadius}`}
                 style={{
                   width: 'clamp(260px, 30vw, 360px)',
                   height: '280px',
@@ -488,7 +488,7 @@ export default function SiteGallery({ config }: { config: SiteConfig }) {
     <>
       <section
         id="gallery"
-        className={sectionPadding}
+        className={`site-section ${sectionPadding}`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

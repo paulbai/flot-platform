@@ -73,10 +73,23 @@ export interface ThreeDConfig {
   intensity: number; // 0-100
 }
 
+export type DesignFamily =
+  | 'opulent'      // Gold/luxury: liquid glass, morphing elements, Bodoni Moda/Jost
+  | 'ethereal'     // Ultra-minimal: extreme whitespace, hairline borders, fade-only
+  | 'tropical'     // Organic/warm: flowing curves, wave dividers, nature gradients
+  | 'brutalist'    // Raw/bold: sharp corners, heavy borders, oversized type, Space Mono
+  | 'heritage'     // Classic/ornate: double borders, decorative frames, serif everything
+  | 'deco'         // Geometric art-deco: gold lines, symmetric, geometric patterns
+  | 'wabi-sabi'    // Japanese minimal: ink wash, asymmetric, calligraphic accents
+  | 'coastal'      // Ocean/airy: layered waves, soft shadows, cool gradients
+  | 'noir'         // Dark/cinematic: neon accents, glass cards, grid patterns, glow
+  | 'electric';    // Bold/playful: color blocks, bouncy animations, Memphis shapes
+
 export interface TemplateDefinition {
   id: string;
   name: string;
   vertical: 'hotel' | 'restaurant' | 'store' | 'travel';
+  designFamily: DesignFamily;
   description: string;
   previewGradient: string; // CSS gradient for template card preview
 

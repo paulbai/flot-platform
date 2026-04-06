@@ -11,6 +11,7 @@ const fallback: TemplateDefinition = {
   vertical: 'hotel',
   description: 'Default template',
   previewGradient: 'linear-gradient(135deg, #111 0%, #333 100%)',
+  designFamily: 'opulent',
   heroLayout: 'classic',
   navStyle: 'glass',
   aboutLayout: 'standard',

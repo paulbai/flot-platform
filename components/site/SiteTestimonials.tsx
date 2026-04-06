@@ -137,7 +137,7 @@ function CardsLayout({
           </>
         );
 
-        const baseClassName = `${borderRadius} border p-6 sm:p-8 ${useFloat ? 'animate-float' : ''}`;
+        const baseClassName = `site-card ${borderRadius} border p-6 sm:p-8 ${useFloat ? 'animate-float' : ''}`;
         const baseStyle = {
           ...cardStyle,
           borderColor: `color-mix(in srgb, ${brand.accentColor} 25%, transparent)`,
@@ -226,7 +226,7 @@ function SingleSliderLayout({
   const item = safeItems[current];
 
   const slideContent = (
-    <div className={`${borderRadius} border p-8 sm:p-12 ${useFloat ? 'animate-float' : ''}`} style={{
+    <div className={`site-card ${borderRadius} border p-8 sm:p-12 ${useFloat ? 'animate-float' : ''}`} style={{
       ...cardStyle,
       borderColor: `color-mix(in srgb, ${brand.accentColor} 25%, transparent)`,
     }}>
@@ -441,7 +441,7 @@ export default function SiteTestimonials({ config }: { config: SiteConfig }) {
   return (
     <section
       id="testimonials"
-      className={sectionPadding}
+      className={`site-section ${sectionPadding}`}
       style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

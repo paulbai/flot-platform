@@ -171,7 +171,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center"
+        className="site-hero relative flex min-h-screen items-center"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-32 sm:px-6 md:grid-cols-2 lg:px-8">
@@ -210,7 +210,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center overflow-hidden"
+        className="site-hero relative flex min-h-screen items-center overflow-hidden"
       >
         {/* Parallax background */}
         {hero.backgroundImage && (
@@ -249,7 +249,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center"
+        className="site-hero relative flex min-h-screen items-center"
         style={{
           backgroundColor: brand.backgroundColor,
           ...(isDepthScroll ? { transform: depthTransform, perspective: 1000 } : {}),
@@ -272,7 +272,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center justify-center"
+        className="site-hero relative flex min-h-screen items-center justify-center"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         <BgImage />
@@ -301,7 +301,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen flex-col"
+        className="site-hero relative flex min-h-screen flex-col"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         {/* Top portion with diagonal clip */}
@@ -346,7 +346,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen flex-col"
+        className="site-hero relative flex min-h-screen flex-col"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         {/* Text first */}
@@ -387,7 +387,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center"
+        className="site-hero relative flex min-h-screen items-center"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         {/* 2x2 image grid behind text */}
@@ -437,7 +437,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center"
+        className="site-hero relative flex min-h-screen items-center"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         {hero.backgroundImage && (
@@ -476,7 +476,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       <motion.section
         ref={sectionRef}
         id="hero"
-        className="relative flex min-h-screen items-center"
+        className="site-hero relative flex min-h-screen items-center"
         style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
       >
         {/* Background with heavy overlay */}
@@ -538,7 +538,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
     <motion.section
       ref={sectionRef}
       id="hero"
-      className="relative flex min-h-screen items-center"
+      className="site-hero relative flex min-h-screen items-center"
       style={isDepthScroll ? { transform: depthTransform, perspective: 1000 } : undefined}
     >
       {/* Background Image */}

@@ -14,6 +14,8 @@ import SiteContact from './SiteContact';
 import SiteBottomCTA from './SiteBottomCTA';
 import SiteFooter from './SiteFooter';
 import SiteFloatingCart from './SiteFloatingCart';
+import TemplateStyles from './TemplateStyles';
+import SectionDivider from './SectionDivider';
 
 const fallbackTemplate: TemplateDefinition = {
   id: 'default',
@@ -21,6 +23,7 @@ const fallbackTemplate: TemplateDefinition = {
   vertical: 'hotel',
   description: '',
   previewGradient: '',
+  designFamily: 'opulent',
   heroLayout: 'classic',
   navStyle: 'glass',
   aboutLayout: 'standard',
@@ -58,15 +61,20 @@ export default function SiteRenderer({ config }: { config: SiteConfig }) {
     [headingFont, bodyFont]
   );
 
+  const accentColor = config.brand.accentColor || '#c9a84c';
+  const bgColor = config.brand.backgroundColor || '#0a0a0a';
+
   return (
     <TemplateContext.Provider value={template}>
       <div
+        data-family={template.designFamily}
         style={{
           backgroundColor: config.brand.backgroundColor,
           color: config.brand.textColor,
           fontFamily: `"${bodyFont}", sans-serif`,
           ['--heading-font' as string]: `"${headingFont}", serif`,
           ['--body-font' as string]: `"${bodyFont}", sans-serif`,
+          ['--accent' as string]: accentColor,
         }}
       >
         {/* Load Google Fonts dynamically */}
@@ -79,14 +87,75 @@ export default function SiteRenderer({ config }: { config: SiteConfig }) {
           </>
         )}
 
+        <TemplateStyles family={template.designFamily} />
+
         <SiteNavbar config={config} />
         <SiteHero config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+        />
+
         <SiteShop config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+          flip={true}
+        />
+
         <SiteAbout config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+        />
+
         <SiteGallery config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+          flip={true}
+        />
+
         <SiteTestimonials config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+        />
+
         <SiteContact config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+          flip={true}
+        />
+
         <SiteBottomCTA config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+        />
+
         <SiteFooter config={config} />
         <SiteFloatingCart config={config} />
       </div>

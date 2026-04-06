@@ -31,7 +31,7 @@ export default function SiteBottomCTA({ config }: { config: SiteConfig }) {
     template.threeDEffects.hero === 'float' || template.threeDEffects.cards === 'float';
 
   return (
-    <section className={`${sectionPadding} px-4 sm:px-6 lg:px-8`}>
+    <section className={`${sectionPadding} px-4 sm:px-6 lg:px-8 site-section`}>
       <motion.div
         variants={sectionVariants}
         initial="hidden"
@@ -39,7 +39,7 @@ export default function SiteBottomCTA({ config }: { config: SiteConfig }) {
         viewport={{ once: true, amount: 0.3 }}
       >
         <div
-          className={`mx-auto max-w-3xl text-center ${borderRadius} p-10 border border-white/10`}
+          className={`site-card mx-auto max-w-3xl text-center ${borderRadius} p-10 border border-white/10`}
           style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
         >
           <h3

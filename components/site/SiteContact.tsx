@@ -426,7 +426,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
     return (
       <section
         id="contact"
-        className={sectionPadding}
+        className={`${sectionPadding} site-section`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -447,7 +447,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
     return (
       <section
         id="contact"
-        className={sectionPadding}
+        className={`${sectionPadding} site-section`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -480,7 +480,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
     return (
       <section
         id="contact"
-        className={sectionPadding}
+        className={`${sectionPadding} site-section`}
         style={{ backgroundColor: brand.backgroundColor, color: brand.textColor }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -492,7 +492,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-100px' }}
-              className={`p-6 sm:p-8 ${borderRadius}`}
+              className={`site-card p-6 sm:p-8 ${borderRadius}`}
               style={{
                 ...cardStyle,
                 boxShadow: cardStyle.boxShadow ?? '0 8px 30px rgba(0,0,0,0.12)',
@@ -527,7 +527,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
     return (
       <section
         id="contact"
-        className="relative"
+        className="relative site-section"
         style={{ color: brand.textColor }}
       >
         {/* Full-width map background */}
@@ -583,7 +583,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: '-100px' }}
-                className={`w-full max-w-md p-6 sm:p-8 ${borderRadius}`}
+                className={`site-card w-full max-w-md p-6 sm:p-8 ${borderRadius}`}
                 style={{
                   backgroundColor: `color-mix(in srgb, ${brand.backgroundColor} 85%, transparent)`,
                   backdropFilter: 'blur(16px)',

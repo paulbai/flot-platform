@@ -155,7 +155,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
 
   if (layout === 'minimal') {
     return (
-      <footer style={{ backgroundColor: footerBg, color: brand.textColor }}>
+      <footer className="site-section" style={{ backgroundColor: footerBg, color: brand.textColor }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
             <p className="text-sm" style={{ opacity: 0.6 }}>
@@ -172,7 +172,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
 
   if (layout === 'centered') {
     return (
-      <footer style={{ backgroundColor: footerBg, color: brand.textColor }}>
+      <footer className="site-section" style={{ backgroundColor: footerBg, color: brand.textColor }}>
         <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
           {/* Brand centered */}
           <div className="flex flex-col items-center gap-2 pb-8 text-center">
@@ -216,7 +216,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
 
   if (layout === 'mega') {
     return (
-      <footer style={{ backgroundColor: footerBg, color: brand.textColor }}>
+      <footer className="site-section" style={{ backgroundColor: footerBg, color: brand.textColor }}>
         <div className="mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
           {/* Brand section — larger */}
           <div className="pb-12">
@@ -283,7 +283,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
   // ── Layout: standard (default) ─────────────────────────────────────
 
   return (
-    <footer style={{ backgroundColor: footerBg, color: brand.textColor }}>
+    <footer className="site-section" style={{ backgroundColor: footerBg, color: brand.textColor }}>
       {/* Top: Brand + Newsletter */}
       <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-8 pb-12 md:flex-row md:items-center">
