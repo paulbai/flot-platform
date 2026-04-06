@@ -160,7 +160,7 @@ export default function Home() {
             style={{ fontSize: 'var(--text-hero)' }}
           >
             <span className="text-[var(--paper)]">Get a free </span>
-            <span className="italic font-light text-[var(--flot)]">business</span>
+            <span className="font-light text-[var(--flot)]">business</span>
             <span className="text-[var(--paper)]"><br />page.</span>
           </motion.h1>
 

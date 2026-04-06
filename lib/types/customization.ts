@@ -147,6 +147,7 @@ export interface SiteConfig {
   id: string;
   slug: string;
   vertical: Vertical;
+  templateId: string;
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt: string;
@@ -180,7 +181,7 @@ export interface SiteBuilderState {
   activeSiteId: string | null;
 
   // Site management
-  createSite: (vertical: Vertical, name: string, ownerEmail?: string) => string; // returns id
+  createSite: (vertical: Vertical, name: string, ownerEmail?: string, templateId?: string) => string; // returns id
   deleteSite: (id: string) => void;
   duplicateSite: (id: string) => string;
   setActiveSite: (id: string | null) => void;
@@ -202,6 +203,8 @@ export interface SiteBuilderState {
   updateRestaurantContent: (id: string, data: Partial<RestaurantContent>) => void;
   updateStoreContent: (id: string, data: Partial<StoreContent>) => void;
   updateTravelContent: (id: string, data: Partial<TravelContent>) => void;
+
+  updateTemplate: (id: string, templateId: string) => void;
 
   publishSite: (id: string) => void;
   unpublishSite: (id: string) => void;

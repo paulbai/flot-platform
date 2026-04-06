@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, createContext } from 'react';
 import type { SiteConfig } from '@/lib/types/customization';
+import type { TemplateDefinition } from '@/lib/templates/types';
+import { useTemplate } from '@/lib/templates/useTemplate';
 import SiteNavbar from './SiteNavbar';
 import SiteHero from './SiteHero';
 import SiteShop from './SiteShop';
@@ -12,6 +14,26 @@ import SiteContact from './SiteContact';
 import SiteBottomCTA from './SiteBottomCTA';
 import SiteFooter from './SiteFooter';
 import SiteFloatingCart from './SiteFloatingCart';
+
+const fallbackTemplate: TemplateDefinition = {
+  id: 'default',
+  name: 'Default',
+  vertical: 'hotel',
+  description: '',
+  previewGradient: '',
+  heroLayout: 'classic',
+  navStyle: 'glass',
+  aboutLayout: 'standard',
+  galleryLayout: 'masonry',
+  testimonialsLayout: 'cards',
+  contactLayout: 'split',
+  footerLayout: 'standard',
+  animationPreset: 'fade-up',
+  threeDEffects: { hero: 'none', cards: 'none', gallery: 'none', intensity: 0 },
+  sectionStyles: { borderRadius: 'lg', cardStyle: 'flat', sectionSpacing: 'normal' },
+};
+
+export const TemplateContext = createContext<TemplateDefinition>(fallbackTemplate);
 
 /** Build a Google Fonts URL for the selected heading + body fonts */
 function buildGoogleFontsUrl(headingFont: string, bodyFont: string): string {
@@ -27,6 +49,7 @@ function buildGoogleFontsUrl(headingFont: string, bodyFont: string): string {
 }
 
 export default function SiteRenderer({ config }: { config: SiteConfig }) {
+  const template = useTemplate(config);
   const headingFont = config.brand.headingFont || 'Inter';
   const bodyFont = config.brand.bodyFont || 'Inter';
 
@@ -36,35 +59,37 @@ export default function SiteRenderer({ config }: { config: SiteConfig }) {
   );
 
   return (
-    <div
-      style={{
-        backgroundColor: config.brand.backgroundColor,
-        color: config.brand.textColor,
-        fontFamily: `"${bodyFont}", sans-serif`,
-        ['--heading-font' as string]: `"${headingFont}", serif`,
-        ['--body-font' as string]: `"${bodyFont}", sans-serif`,
-      }}
-    >
-      {/* Load Google Fonts dynamically */}
-      {fontsUrl && (
-        <>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-          <link rel="stylesheet" href={fontsUrl} />
-        </>
-      )}
+    <TemplateContext.Provider value={template}>
+      <div
+        style={{
+          backgroundColor: config.brand.backgroundColor,
+          color: config.brand.textColor,
+          fontFamily: `"${bodyFont}", sans-serif`,
+          ['--heading-font' as string]: `"${headingFont}", serif`,
+          ['--body-font' as string]: `"${bodyFont}", sans-serif`,
+        }}
+      >
+        {/* Load Google Fonts dynamically */}
+        {fontsUrl && (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+            <link rel="stylesheet" href={fontsUrl} />
+          </>
+        )}
 
-      <SiteNavbar config={config} />
-      <SiteHero config={config} />
-      <SiteShop config={config} />
-      <SiteAbout config={config} />
-      <SiteGallery config={config} />
-      <SiteTestimonials config={config} />
-      <SiteContact config={config} />
-      <SiteBottomCTA config={config} />
-      <SiteFooter config={config} />
-      <SiteFloatingCart config={config} />
-    </div>
+        <SiteNavbar config={config} />
+        <SiteHero config={config} />
+        <SiteShop config={config} />
+        <SiteAbout config={config} />
+        <SiteGallery config={config} />
+        <SiteTestimonials config={config} />
+        <SiteContact config={config} />
+        <SiteBottomCTA config={config} />
+        <SiteFooter config={config} />
+        <SiteFloatingCart config={config} />
+      </div>
+    </TemplateContext.Provider>
   );
 }

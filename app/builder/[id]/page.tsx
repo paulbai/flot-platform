@@ -58,6 +58,7 @@ import {
   TrendingUp,
   ThumbsUp,
   CheckCircle,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
 import { useSiteBuilderStore } from '@/store/siteBuilderStore';
@@ -65,6 +66,8 @@ import SiteRenderer from '@/components/site/SiteRenderer';
 import ImageUploader from '@/components/customization/ImageUploader';
 import ColorPicker from '@/components/customization/ColorPicker';
 import type { Vertical } from '@/lib/types/customization';
+import { getTemplatesForVertical, getTemplate } from '@/lib/templates/registry';
+import type { TemplateDefinition } from '@/lib/templates/types';
 
 /* ─── Shared Styles ─── */
 
@@ -319,11 +322,13 @@ export default function SiteEditorPage() {
     updateHotelContent,
     updateRestaurantContent,
     updateStoreContent,
+    updateTemplate,
     publishSite,
     unpublishSite,
   } = useSiteBuilderStore();
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ brand: true });
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishSlug, setPublishSlug] = useState('');
   const [slugError, setSlugError] = useState('');
@@ -492,6 +497,35 @@ export default function SiteEditorPage() {
             <h2 className="text-sm font-semibold truncate">{site.brand.businessName}</h2>
             <p className="text-[10px] text-[#555] mt-0.5 capitalize">{site.vertical} site</p>
           </div>
+
+          {/* ─── 0. TEMPLATE ─── */}
+          <SectionAccordion title="Template" icon={<Layers className="w-4 h-4" />} open={isOpen('template')} onToggle={() => toggle('template')}>
+            {(() => {
+              const currentTemplate = getTemplate(site.templateId) as TemplateDefinition | undefined;
+              return (
+                <>
+                  {/* Current template preview */}
+                  <div className="rounded-lg border border-[#222] bg-[#0a0a0a] p-3 space-y-2">
+                    <div
+                      className="h-3 w-full rounded-full"
+                      style={{ background: currentTemplate?.previewGradient || 'linear-gradient(to right, #333, #555)' }}
+                    />
+                    <p className="text-sm font-medium text-white">{currentTemplate?.name || 'Default Template'}</p>
+                    <p className="text-[10px] text-[#666] leading-relaxed">{currentTemplate?.description || 'No template selected'}</p>
+                  </div>
+                  <button
+                    onClick={() => setShowTemplateModal(true)}
+                    className="w-full text-xs font-medium px-3 py-2 rounded-lg border border-[#333] text-white hover:bg-[#111] hover:border-[#444] transition-colors"
+                  >
+                    Change Template
+                  </button>
+                  <p className="text-[10px] text-[#555] leading-relaxed">
+                    Changing template will update colors and fonts but preserve your content
+                  </p>
+                </>
+              );
+            })()}
+          </SectionAccordion>
 
           {/* ─── 1. BRAND ─── */}
           <SectionAccordion title="Brand" icon={<Palette className="w-4 h-4" />} open={isOpen('brand')} onToggle={() => toggle('brand')}>
@@ -826,16 +860,27 @@ export default function SiteEditorPage() {
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
-                    <input
-                      className={`${inputClass} !py-1.5`}
-                      placeholder="Image URL"
-                      value={img.url}
-                      onChange={(e) => {
-                        const updated = [...site.gallery.images];
-                        updated[i] = { ...updated[i], url: e.target.value };
-                        gl('images', updated);
-                      }}
-                    />
+                    <div className="space-y-1.5">
+                      <input
+                        className={`${inputClass} !py-1.5`}
+                        placeholder="Paste image URL"
+                        value={img.url?.startsWith('data:') ? '' : img.url}
+                        onChange={(e) => {
+                          const updated = [...site.gallery.images];
+                          updated[i] = { ...updated[i], url: e.target.value };
+                          gl('images', updated);
+                        }}
+                      />
+                      <ImageUploader
+                        value={img.url || null}
+                        onChange={(url) => {
+                          const updated = [...site.gallery.images];
+                          updated[i] = { ...updated[i], url };
+                          gl('images', updated);
+                        }}
+                        aspectRatio="16/9"
+                      />
+                    </div>
                     <input
                       className={`${inputClass} !py-1.5`}
                       placeholder="Caption"
@@ -1203,8 +1248,15 @@ export default function SiteEditorPage() {
                       <option value="City View">City View</option>
                       <option value="Garden View">Garden View</option>
                     </select>
-                    <input className={`${inputClass} !py-1.5`} placeholder="Image URL" value={room.images?.[0] || ''}
-                      onChange={(e) => { const u = [...site.hotelContent!.rooms]; u[ri] = { ...u[ri], images: [e.target.value] }; updateHotelContent(id, { rooms: u }); }} />
+                    <div className="space-y-1.5">
+                      <input className={`${inputClass} !py-1.5`} placeholder="Paste image URL" value={room.images?.[0]?.startsWith('data:') ? '' : (room.images?.[0] || '')}
+                        onChange={(e) => { const u = [...site.hotelContent!.rooms]; u[ri] = { ...u[ri], images: [e.target.value] }; updateHotelContent(id, { rooms: u }); }} />
+                      <ImageUploader
+                        value={room.images?.[0] || null}
+                        onChange={(url) => { const u = [...site.hotelContent!.rooms]; u[ri] = { ...u[ri], images: [url] }; updateHotelContent(id, { rooms: u }); }}
+                        aspectRatio="16/9"
+                      />
+                    </div>
                     <textarea className={`${inputClass} !py-1.5 resize-none`} rows={2} placeholder="Description (optional)" value={room.description || ''}
                       onChange={(e) => { const u = [...site.hotelContent!.rooms]; u[ri] = { ...u[ri], description: e.target.value }; updateHotelContent(id, { rooms: u }); }} />
                   </div>
@@ -1346,8 +1398,15 @@ export default function SiteEditorPage() {
                         ))}
                       </select>
                     </div>
-                    <input className={`${inputClass} !py-1.5`} placeholder="Image URL" value={product.images?.[0] || ''}
-                      onChange={(e) => { const u = [...site.storeContent!.products]; u[pi] = { ...u[pi], images: [e.target.value] }; updateStoreContent(id, { products: u }); }} />
+                    <div className="space-y-1.5">
+                      <input className={`${inputClass} !py-1.5`} placeholder="Paste image URL" value={product.images?.[0]?.startsWith('data:') ? '' : (product.images?.[0] || '')}
+                        onChange={(e) => { const u = [...site.storeContent!.products]; u[pi] = { ...u[pi], images: [e.target.value] }; updateStoreContent(id, { products: u }); }} />
+                      <ImageUploader
+                        value={product.images?.[0] || null}
+                        onChange={(url) => { const u = [...site.storeContent!.products]; u[pi] = { ...u[pi], images: [url] }; updateStoreContent(id, { products: u }); }}
+                        aspectRatio="1/1"
+                      />
+                    </div>
                     <input className={`${inputClass} !py-1.5`} placeholder="Sizes (comma-separated, e.g. S,M,L,XL)" value={product.sizes?.join(',') || ''}
                       onChange={(e) => { const u = [...site.storeContent!.products]; u[pi] = { ...u[pi], sizes: e.target.value ? e.target.value.split(',').map(s => s.trim()) : null }; updateStoreContent(id, { products: u }); }} />
                     <textarea className={`${inputClass} !py-1.5 resize-none`} rows={2} placeholder="Description (optional)" value={product.description || ''}
@@ -1396,6 +1455,86 @@ export default function SiteEditorPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── Template Selection Modal ─── */}
+      <AnimatePresence>
+        {showTemplateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowTemplateModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#111] border border-[#222] rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold">Choose a Template</h3>
+                <button
+                  onClick={() => setShowTemplateModal(false)}
+                  className="text-[#888] hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-[#888] mb-4">
+                Changing template will update colors and fonts but preserve your content
+              </p>
+
+              <div className="overflow-y-auto flex-1 -mx-1 px-1">
+                <div className="grid grid-cols-2 gap-3">
+                  {getTemplatesForVertical(site.vertical).map((tmpl) => {
+                    const isActive = tmpl.id === site.templateId;
+                    return (
+                      <button
+                        key={tmpl.id}
+                        onClick={() => {
+                          updateTemplate(id, tmpl.id);
+                          setShowTemplateModal(false);
+                        }}
+                        className={`text-left rounded-lg border p-3 space-y-2 transition-colors ${
+                          isActive
+                            ? 'border-white/40 bg-white/5'
+                            : 'border-[#222] hover:border-[#444] hover:bg-[#0a0a0a]'
+                        }`}
+                      >
+                        <div
+                          className="h-3 w-full rounded-full"
+                          style={{ background: tmpl.previewGradient }}
+                        />
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-white">{tmpl.name}</p>
+                          {isActive && (
+                            <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/60">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-[#666] leading-relaxed">{tmpl.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-4 pt-3 border-t border-[#1a1a1a]">
+                <button
+                  onClick={() => setShowTemplateModal(false)}
+                  className="text-xs text-[#888] hover:text-white transition-colors px-3 py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Publish Modal ─── */}
       <AnimatePresence>

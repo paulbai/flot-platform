@@ -22,6 +22,7 @@ import { rooms } from '@/lib/dummy-data/hotel';
 import { menu } from '@/lib/dummy-data/restaurant';
 import { products } from '@/lib/dummy-data/store';
 import { airports, flights } from '@/lib/dummy-data/travel';
+import { getTemplate, DEFAULT_TEMPLATE_IDS } from '@/lib/templates/registry';
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -204,15 +205,18 @@ const verticalDefaults: Record<Vertical, {
   },
 };
 
-function createDefaultSite(vertical: Vertical, name: string, ownerEmail = ''): SiteConfig {
+function createDefaultSite(vertical: Vertical, name: string, ownerEmail = '', templateId?: string): SiteConfig {
   const id = uid();
   const slug = slugify(name);
   const vd = verticalDefaults[vertical];
+  const resolvedTemplateId = templateId || DEFAULT_TEMPLATE_IDS[vertical] || '';
+  const tmpl = getTemplate(resolvedTemplateId);
 
   const site: SiteConfig = {
     id,
     slug,
     vertical,
+    templateId: resolvedTemplateId,
     status: 'draft',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -223,11 +227,11 @@ function createDefaultSite(vertical: Vertical, name: string, ownerEmail = ''): S
       businessName: name,
       tagline: vd.hero.subline || '',
       logoUrl: null,
-      accentColor: vd.brand.accentColor || '#a88567',
-      backgroundColor: vd.brand.backgroundColor || '#080808',
-      textColor: vd.brand.textColor || '#ffffff',
-      headingFont: vd.brand.headingFont || 'Inter',
-      bodyFont: vd.brand.bodyFont || 'Inter',
+      accentColor: tmpl?.brandOverrides?.accentColor || vd.brand.accentColor || '#a88567',
+      backgroundColor: tmpl?.brandOverrides?.backgroundColor || vd.brand.backgroundColor || '#080808',
+      textColor: tmpl?.brandOverrides?.textColor || vd.brand.textColor || '#ffffff',
+      headingFont: tmpl?.brandOverrides?.headingFont || vd.brand.headingFont || 'Inter',
+      bodyFont: tmpl?.brandOverrides?.bodyFont || vd.brand.bodyFont || 'Inter',
     },
     businessInfo: {
       phone: '', email: '', address: '', city: '', country: '', postalCode: '', hours: '', founded: '', description: '',
@@ -262,8 +266,8 @@ function createDefaultSite(vertical: Vertical, name: string, ownerEmail = ''): S
       secondaryCtaText: 'Learn More',
       secondaryCtaLink: '#about',
       backgroundImage: vd.hero.backgroundImage || '',
-      overlayOpacity: 60,
-      alignment: 'left',
+      overlayOpacity: tmpl?.heroOverrides?.overlayOpacity ?? 60,
+      alignment: tmpl?.heroOverrides?.alignment || 'left',
     },
     about: {
       enabled: true,
@@ -345,8 +349,8 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
       sites: [],
       activeSiteId: null,
 
-      createSite: (vertical, name, ownerEmail) => {
-        const site = createDefaultSite(vertical, name, ownerEmail);
+      createSite: (vertical, name, ownerEmail, templateId) => {
+        const site = createDefaultSite(vertical, name, ownerEmail, templateId);
         set((s) => ({ sites: [...s.sites, site], activeSiteId: site.id }));
         return site.id;
       },
@@ -471,6 +475,33 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
           site.id === id ? { ...site, travelContent: { ...site.travelContent!, ...data }, updatedAt: new Date().toISOString() } : site
         ),
       })),
+
+      updateTemplate: (id, templateId) => {
+        const tmpl = getTemplate(templateId);
+        if (!tmpl) return;
+        set((s) => ({
+          sites: s.sites.map((site) => {
+            if (site.id !== id) return site;
+            return {
+              ...site,
+              templateId,
+              brand: {
+                ...site.brand,
+                ...(tmpl.brandOverrides || {}),
+                businessName: site.brand.businessName,
+                tagline: site.brand.tagline,
+                logoUrl: site.brand.logoUrl,
+              },
+              hero: {
+                ...site.hero,
+                overlayOpacity: tmpl.heroOverrides?.overlayOpacity ?? site.hero.overlayOpacity,
+                alignment: tmpl.heroOverrides?.alignment || site.hero.alignment,
+              },
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        }));
+      },
 
       publishSite: (id) => set((s) => ({
         sites: s.sites.map((site) =>

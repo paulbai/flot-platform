@@ -19,6 +19,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { useSiteBuilderStore } from '@/store/siteBuilderStore';
+import { getTemplatesForVertical } from '@/lib/templates/registry';
+import type { TemplateDefinition } from '@/lib/templates/types';
 import type { Vertical } from '@/lib/types/customization';
 
 const verticals: { key: Vertical; label: string; icon: React.ReactNode; color: string; comingSoon?: boolean }[] = [
@@ -52,27 +54,40 @@ export default function BuilderDashboard() {
   );
 
   const [showCreate, setShowCreate] = useState(false);
-  const [step, setStep] = useState<'vertical' | 'name'>('vertical');
+  const [step, setStep] = useState<'vertical' | 'template' | 'name'>('vertical');
   const [selectedVertical, setSelectedVertical] = useState<Vertical | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  const templates: TemplateDefinition[] = useMemo(
+    () => (selectedVertical ? getTemplatesForVertical(selectedVertical) : []),
+    [selectedVertical]
+  );
 
   // Auto-open create modal if ?create=<vertical> is in URL
   useEffect(() => {
     const createParam = searchParams.get('create') as Vertical | null;
+    const templateParam = searchParams.get('template');
     if (createParam && ['hotel', 'restaurant', 'store'].includes(createParam)) {
       setSelectedVertical(createParam);
-      setStep('name');
+      if (templateParam) {
+        setSelectedTemplate(templateParam);
+        setStep('name');
+      } else {
+        setStep('template');
+      }
       setShowCreate(true);
     }
   }, [searchParams]);
 
   function handleCreateSite() {
     if (!selectedVertical || !businessName.trim()) return;
-    const id = createSite(selectedVertical, businessName.trim(), userEmail);
+    const id = createSite(selectedVertical, businessName.trim(), userEmail, selectedTemplate || undefined);
     setShowCreate(false);
     setStep('vertical');
     setSelectedVertical(null);
+    setSelectedTemplate(null);
     setBusinessName('');
     router.push(`/builder/${id}`);
   }
@@ -86,6 +101,7 @@ export default function BuilderDashboard() {
     setShowCreate(false);
     setStep('vertical');
     setSelectedVertical(null);
+    setSelectedTemplate(null);
     setBusinessName('');
   }
 
@@ -295,11 +311,15 @@ export default function BuilderDashboard() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111] border border-[#222] rounded-xl p-4 sm:p-6 w-[calc(100%-2rem)] max-w-lg mx-auto"
+              className="bg-[#111] border border-[#222] rounded-xl p-4 sm:p-6 w-[calc(100%-2rem)] max-w-lg mx-auto max-h-[85vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">
-                  {step === 'vertical' ? 'Choose a Vertical' : 'Name Your Business'}
+                  {step === 'vertical'
+                    ? 'Choose a Vertical'
+                    : step === 'template'
+                      ? 'Choose a Template'
+                      : 'Name Your Business'}
                 </h2>
                 <button onClick={closeModal} className="text-[#888] hover:text-white transition-colors">
                   <X className="w-4 h-4" />
@@ -316,7 +336,7 @@ export default function BuilderDashboard() {
                       onClick={() => {
                         if (v.comingSoon) return;
                         setSelectedVertical(v.key);
-                        setStep('name');
+                        setStep('template');
                       }}
                       className={`relative flex flex-col items-center gap-3 p-6 rounded-xl border bg-[#0a0a0a] transition-colors ${
                         v.comingSoon
@@ -339,11 +359,69 @@ export default function BuilderDashboard() {
                     </motion.button>
                   ))}
                 </div>
+              ) : step === 'template' ? (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <button
+                      onClick={() => {
+                        setStep('vertical');
+                        setSelectedTemplate(null);
+                      }}
+                      className="text-xs text-[#888] hover:text-white transition-colors"
+                    >
+                      &larr; Back
+                    </button>
+                    <div
+                      className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: verticalColor(selectedVertical!) + '18',
+                        color: verticalColor(selectedVertical!),
+                      }}
+                    >
+                      <span className="capitalize">{selectedVertical}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {templates.map((tpl) => {
+                      const isSelected = selectedTemplate === tpl.id;
+                      const accentColor = verticalColor(selectedVertical!);
+                      return (
+                        <motion.button
+                          key={tpl.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setSelectedTemplate(tpl.id);
+                            setStep('name');
+                          }}
+                          className="flex flex-col rounded-xl border bg-[#0a0a0a] overflow-hidden text-left transition-colors"
+                          style={{
+                            borderColor: isSelected ? accentColor : '#222',
+                            borderWidth: isSelected ? 2 : 1,
+                          }}
+                        >
+                          {/* Gradient preview bar */}
+                          <div
+                            className="w-full h-20 shrink-0"
+                            style={{ background: tpl.previewGradient }}
+                          />
+                          <div className="p-3">
+                            <h4 className="text-xs font-semibold mb-1 truncate">{tpl.name}</h4>
+                            <p className="text-[11px] text-[#888] line-clamp-2 leading-relaxed">
+                              {tpl.description}
+                            </p>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
               ) : (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <button
-                      onClick={() => setStep('vertical')}
+                      onClick={() => setStep('template')}
                       className="text-xs text-[#888] hover:text-white transition-colors"
                     >
                       &larr; Back

@@ -224,6 +224,44 @@ body {
 .stagger-words > span:nth-child(2) { animation-delay: 120ms; }
 .stagger-words > span:nth-child(3) { animation-delay: 240ms; }
 
+/* 3D Template Effects */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.perspective-container {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+/* Flip card for 3D reveal effect */
+.flip-card {
+  perspective: 600px;
+}
+
+.flip-card-inner {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
 /* Glow effect for CTAs */
 .glow-flot {
   box-shadow: 0 0 20px var(--flot-glow), 0 0 60px var(--flot-glow);
