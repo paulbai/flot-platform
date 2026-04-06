@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { ShoppingBag, Plus, Flame, Leaf, Wheat } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
-import { menu } from '@/lib/dummy-data/restaurant';
+import { useRestaurantData } from '@/lib/hooks/useCustomizedData';
 import { useCartStore } from '@/store/cartStore';
 import { leonesOf } from '@/lib/currency';
 import type { ExtraField } from '@/lib/types';
@@ -29,7 +29,8 @@ const restaurantExtraFields: ExtraField[] = [
 ];
 
 export default function RestaurantPage() {
-  const [activeCategory, setActiveCategory] = useState(menu.categories[0].id);
+  const { brand, heroImage, heroHeadline, heroSubline, heroDescription, categories } = useRestaurantData();
+  const [activeCategory, setActiveCategory] = useState(categories[0]?.id || '');
   const [showMenu, setShowMenu] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -46,20 +47,22 @@ export default function RestaurantPage() {
   };
 
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#0d0a08' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
       <NavBar />
 
       {!showMenu ? (
         /* Landing / Hero */
         <div className="relative min-h-screen flex flex-col">
-          {/* Hero background */}
           <div
             className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${heroImage})` }}
+          />
+          <div
+            className="absolute inset-0"
             style={{
-              backgroundImage: 'url(https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1400&q=80)',
+              background: `linear-gradient(to top, ${brand.backgroundColor}, ${brand.backgroundColor}b3 30%, ${brand.backgroundColor}4d)`,
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d0a08] via-[#0d0a08]/70 to-[#0d0a08]/30" />
 
           <div className="relative z-10 flex-1 flex flex-col justify-end px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full pb-16 pt-32">
             <motion.div
@@ -67,32 +70,36 @@ export default function RestaurantPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="w-12 h-[2px] mb-6" style={{ backgroundColor: 'var(--restaurant)' }} />
+              {brand.logoUrl && (
+                <img src={brand.logoUrl} alt={brand.businessName} className="h-12 mb-4 object-contain" />
+              )}
+              <div className="w-12 h-[2px] mb-6" style={{ backgroundColor: brand.accentColor }} />
               <h1 className="font-display text-[var(--text-hero)] font-medium leading-[0.9] tracking-tight text-[var(--paper)] mb-4">
-                Taste first.<br />
-                <span className="italic font-light" style={{ color: 'var(--restaurant)' }}>Pay after.</span>
+                {heroHeadline}<br />
+                <span className="italic font-light" style={{ color: brand.accentColor }}>{heroSubline}</span>
               </h1>
               <p className="text-[var(--text-md)] text-[var(--cloud)] font-body max-w-md mb-12">
-                Scan the QR at your table, browse the menu, order, and pay — all from your phone.
+                {heroDescription}
               </p>
             </motion.div>
 
-            {/* Two paths */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-              {/* QR Code Card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-8 flex flex-col items-center cursor-pointer hover:border-[var(--restaurant)]/50 transition-colors"
+                className="group relative bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-8 flex flex-col items-center cursor-pointer transition-colors"
+                style={{ borderColor: 'var(--ash)' }}
                 onClick={() => setShowMenu(true)}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = brand.accentColor + '80')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--ash)')}
               >
-                <div className="bg-white p-4 rounded-sm mb-6 group-hover:shadow-lg group-hover:shadow-[var(--restaurant)]/10 transition-shadow">
+                <div className="bg-white p-4 rounded-sm mb-6 transition-shadow" style={{ boxShadow: `0 0 0 0 ${brand.accentColor}1a` }}>
                   <QRCodeSVG
                     value="https://flot.demo/restaurant/menu"
                     size={140}
                     bgColor="#ffffff"
-                    fgColor="#0d0a08"
+                    fgColor={brand.backgroundColor}
                     level="M"
                   />
                 </div>
@@ -101,17 +108,18 @@ export default function RestaurantPage() {
                 </p>
               </motion.div>
 
-              {/* Browse Menu Card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-8 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--restaurant)]/50 transition-colors"
+                className="group relative bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-8 flex flex-col items-center justify-center cursor-pointer transition-colors"
                 onClick={() => setShowMenu(true)}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = brand.accentColor + '80')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--ash)')}
               >
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
-                  style={{ backgroundColor: 'var(--restaurant)', opacity: 0.15 }}
+                  style={{ backgroundColor: brand.accentColor, opacity: 0.15 }}
                 />
                 <div className="absolute top-1/2 -translate-y-1/2 mt-[-12px]">
                   <span className="text-4xl">🍽</span>
@@ -129,20 +137,19 @@ export default function RestaurantPage() {
       ) : (
         /* Menu View */
         <div className="pt-16">
-          {/* Sticky category tabs */}
           <div
             className="sticky top-16 z-20 border-b border-[var(--ash)]/50 overflow-x-auto hide-scrollbar"
-            style={{ backgroundColor: 'rgba(13, 10, 8, 0.95)', backdropFilter: 'blur(12px)' }}
+            style={{ backgroundColor: `${brand.backgroundColor}f2`, backdropFilter: 'blur(12px)' }}
           >
             <div className="max-w-[900px] mx-auto px-4 flex gap-1">
-              {menu.categories.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => scrollToCategory(cat.id)}
                   className="flex-shrink-0 px-4 py-3 text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] border-b-2 transition-colors duration-mid whitespace-nowrap cursor-pointer"
                   style={{
-                    color: activeCategory === cat.id ? 'var(--restaurant)' : 'var(--fog)',
-                    borderColor: activeCategory === cat.id ? 'var(--restaurant)' : 'transparent',
+                    color: activeCategory === cat.id ? brand.accentColor : 'var(--fog)',
+                    borderColor: activeCategory === cat.id ? brand.accentColor : 'transparent',
                   }}
                 >
                   {cat.name}
@@ -151,16 +158,15 @@ export default function RestaurantPage() {
             </div>
           </div>
 
-          {/* Menu items */}
           <div className="max-w-[900px] mx-auto px-4 py-8 pb-32">
-            {menu.categories.map((category) => (
+            {categories.map((category) => (
               <div
                 key={category.id}
                 ref={(el) => { sectionRefs.current[category.id] = el; }}
                 className="mb-12"
               >
                 <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium mb-6 flex items-center gap-3">
-                  <span className="w-8 h-[1px]" style={{ backgroundColor: 'var(--restaurant)' }} />
+                  <span className="w-8 h-[1px]" style={{ backgroundColor: brand.accentColor }} />
                   {category.name}
                 </h2>
 
@@ -172,7 +178,9 @@ export default function RestaurantPage() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                      className="group relative bg-[var(--ink)] border border-[var(--ash)]/50 rounded-sm p-5 hover:border-[var(--restaurant)]/30 transition-colors"
+                      className="group relative bg-[var(--ink)] border border-[var(--ash)]/50 rounded-sm p-5 transition-colors"
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = brand.accentColor + '4d')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '')}
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
@@ -181,7 +189,7 @@ export default function RestaurantPage() {
                               {item.name}
                             </h3>
                             {item.popular && (
-                              <Flame size={14} style={{ color: 'var(--restaurant)' }} />
+                              <Flame size={14} style={{ color: brand.accentColor }} />
                             )}
                           </div>
                           <p className="text-[var(--text-xs)] text-[var(--fog)] leading-relaxed mb-3">
@@ -223,8 +231,8 @@ export default function RestaurantPage() {
                             }}
                             className="w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-mid hover:scale-110 cursor-pointer"
                             style={{
-                              borderColor: 'var(--restaurant)',
-                              color: 'var(--restaurant)',
+                              borderColor: brand.accentColor,
+                              color: brand.accentColor,
                             }}
                             aria-label={`Add ${item.name} to order`}
                           >
@@ -239,7 +247,6 @@ export default function RestaurantPage() {
             ))}
           </div>
 
-          {/* Floating cart bar */}
           <AnimatePresence>
             {itemCount > 0 && (
               <motion.div
@@ -253,7 +260,7 @@ export default function RestaurantPage() {
                   <button
                     onClick={() => setCheckoutOpen(true)}
                     className="w-full flex items-center justify-between px-6 py-4 rounded-sm cursor-pointer transition-transform hover:scale-[1.01]"
-                    style={{ backgroundColor: 'var(--restaurant)' }}
+                    style={{ backgroundColor: brand.accentColor }}
                   >
                     <div className="flex items-center gap-3">
                       <ShoppingBag size={18} className="text-white" />
@@ -277,12 +284,11 @@ export default function RestaurantPage() {
         </div>
       )}
 
-      {/* Checkout */}
       <AnimatePresence>
         {checkoutOpen && cartItems.length > 0 && (
           <FlotCheckout
-            brandName="Osteria Flot"
-            accentColor="#e85d3a"
+            brandName={brand.businessName}
+            accentColor={brand.accentColor}
             orderSummary={cartItems}
             currency="USD"
             vertical="restaurant"

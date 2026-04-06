@@ -9,7 +9,7 @@ import { ArrowLeft, Minus, Plus, Heart, Check } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { products } from '@/lib/dummy-data/store';
+import { useStoreData } from '@/lib/hooks/useCustomizedData';
 import { useCartStore } from '@/store/cartStore';
 import { leonesOf } from '@/lib/currency';
 
@@ -19,6 +19,7 @@ const FlotCheckout = dynamic(() => import('@/components/checkout/FlotCheckout'),
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { products, brand } = useStoreData();
   const product = products.find((p) => p.id === params.id);
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -174,7 +175,7 @@ export default function ProductDetailPage() {
             {product.colors && (
               <div className="mb-6">
                 <label className="block text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider mb-3" style={{ color: '#666' }}>
-                  Color {selectedColor && <span className="normal-case tracking-normal font-normal">— {selectedColor}</span>}
+                  Color {selectedColor && <span className="normal-case tracking-normal font-normal">- {selectedColor}</span>}
                 </label>
                 <div className="flex gap-3">
                   {product.colors.map((color) => (
@@ -276,8 +277,8 @@ export default function ProductDetailPage() {
       <AnimatePresence>
         {checkoutOpen && cartItems.length > 0 && (
           <FlotCheckout
-            brandName="Flot Store"
-            accentColor="var(--fashion)"
+            brandName={brand.businessName}
+            accentColor={brand.accentColor}
             orderSummary={cartItems}
             currency="USD"
             vertical="store"

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Badge from '@/components/ui/Badge';
-import { products } from '@/lib/dummy-data/store';
+import { useStoreData } from '@/lib/hooks/useCustomizedData';
 import { useCartStore } from '@/store/cartStore';
 import { leonesOf } from '@/lib/currency';
 import type { Product } from '@/lib/types';
@@ -22,6 +22,7 @@ const categoryMap: Record<string, Product['category'] | 'all'> = {
 };
 
 export default function StorePage() {
+  const { brand, heroLabel, products } = useStoreData();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const addItem = useCartStore((s) => s.addItem);
 
@@ -33,11 +34,13 @@ export default function StorePage() {
   const featured = products[0];
   const secondary = products.slice(2, 4);
 
+  if (!featured) return null;
+
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#faf9f7', color: '#111111' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor, color: '#111111' }}>
       <NavBar />
 
-      {/* Hero Grid — asymmetric editorial layout */}
+      {/* Hero Grid */}
       <section className="pt-20 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -45,13 +48,15 @@ export default function StorePage() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="mb-4"
         >
-          <span className="text-[var(--text-xs)] font-body font-extrabold uppercase tracking-[0.25em]" style={{ color: 'var(--fashion)' }}>
-            Fashion & Art
+          {brand.logoUrl && (
+            <img src={brand.logoUrl} alt={brand.businessName} className="h-10 mb-3 object-contain" />
+          )}
+          <span className="text-[var(--text-xs)] font-body font-extrabold uppercase tracking-[0.25em]" style={{ color: brand.accentColor }}>
+            {heroLabel}
           </span>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-12">
-          {/* Featured large */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -69,7 +74,7 @@ export default function StorePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                {featured.badge && <Badge color="var(--fashion)" className="mb-2">{featured.badge}</Badge>}
+                {featured.badge && <Badge color={brand.accentColor} className="mb-2">{featured.badge}</Badge>}
                 <h2 className="font-display text-[var(--text-xl)] text-white font-medium leading-tight">
                   {featured.name}
                 </h2>
@@ -80,7 +85,6 @@ export default function StorePage() {
             </Link>
           </motion.div>
 
-          {/* Secondary pieces */}
           {secondary.map((product, i) => (
             <motion.div
               key={product.id}
@@ -98,7 +102,7 @@ export default function StorePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  {product.badge && <Badge color="var(--fashion)" className="mb-1.5">{product.badge}</Badge>}
+                  {product.badge && <Badge color={brand.accentColor} className="mb-1.5">{product.badge}</Badge>}
                   <h3 className="font-display text-[var(--text-md)] text-white font-medium">
                     {product.name}
                   </h3>
@@ -129,7 +133,7 @@ export default function StorePage() {
               className="flex-shrink-0 text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] transition-colors duration-mid pb-1 border-b-2 cursor-pointer whitespace-nowrap"
               style={{
                 color: activeCategory === cat ? '#111111' : '#999999',
-                borderColor: activeCategory === cat ? 'var(--fashion)' : 'transparent',
+                borderColor: activeCategory === cat ? brand.accentColor : 'transparent',
               }}
             >
               {cat}
@@ -137,7 +141,7 @@ export default function StorePage() {
           ))}
         </motion.div>
 
-        {/* Product Grid — masonry-style with varying heights */}
+        {/* Product Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
           {filtered.map((product, i) => (
             <motion.div
@@ -165,11 +169,10 @@ export default function StorePage() {
                   </div>
                   {product.badge && (
                     <div className="absolute top-3 left-3">
-                      <Badge color="var(--fashion)">{product.badge}</Badge>
+                      <Badge color={brand.accentColor}>{product.badge}</Badge>
                     </div>
                   )}
 
-                  {/* Quick add overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-mid flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
                     <button
                       onClick={(e) => {
@@ -183,7 +186,15 @@ export default function StorePage() {
                           vertical: 'store',
                         });
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-white text-[#111] text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider rounded-sm shadow-lg hover:bg-[var(--fashion)] hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-2 px-4 py-2 bg-white text-[#111] text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider rounded-sm shadow-lg transition-colors cursor-pointer"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = brand.accentColor;
+                        e.currentTarget.style.color = '#fff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fff';
+                        e.currentTarget.style.color = '#111';
+                      }}
                     >
                       <ShoppingBag size={14} />
                       Add to Cart
@@ -191,7 +202,6 @@ export default function StorePage() {
                   </div>
                 </Link>
 
-                {/* Product info */}
                 <div>
                   {product.artist && (
                     <p className="text-[var(--text-xs)] font-body text-[#999] uppercase tracking-wider mb-0.5">
@@ -207,7 +217,7 @@ export default function StorePage() {
                     ${product.price} <span className="text-[var(--text-xs)] font-mono" style={{ color: '#999' }}>({leonesOf(product.price)})</span>
                   </p>
                   {product.stock <= 5 && product.stock > 0 && (
-                    <p className="text-[var(--text-xs)] font-body mt-1" style={{ color: 'var(--fashion)' }}>
+                    <p className="text-[var(--text-xs)] font-body mt-1" style={{ color: brand.accentColor }}>
                       Only {product.stock} left
                     </p>
                   )}

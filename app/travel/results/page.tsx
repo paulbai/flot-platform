@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import NavBar from '@/components/layout/NavBar';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { flights } from '@/lib/dummy-data/travel';
+import { useTravelData } from '@/lib/hooks/useCustomizedData';
 import { leonesOf } from '@/lib/currency';
 
 const FlotCheckout = dynamic(() => import('@/components/checkout/FlotCheckout'), { ssr: false });
@@ -178,6 +178,7 @@ function SeatMap({ onSeatSelect, selectedSeat }: { onSeatSelect: (seat: string) 
 
 function ResultsContent() {
   const searchParams = useSearchParams();
+  const { flights, brand } = useTravelData();
   const flightClass = (searchParams.get('class') || 'economy') as FlightClass;
   const passengers = Number(searchParams.get('adults') || 1) + Number(searchParams.get('children') || 0);
 
@@ -336,8 +337,8 @@ function ResultsContent() {
       <AnimatePresence>
         {checkoutOpen && orderItems.length > 0 && (
           <FlotCheckout
-            brandName="Flot Travel"
-            accentColor="#4a9eff"
+            brandName={brand.businessName}
+            accentColor={brand.accentColor}
             orderSummary={orderItems}
             currency="USD"
             vertical="travel"
@@ -352,9 +353,10 @@ function ResultsContent() {
   );
 }
 
-export default function TravelResultsPage() {
+function TravelResultsWrapper() {
+  const { brand } = useTravelData();
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#080d14' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
       <NavBar />
       <Suspense fallback={
         <div className="pt-32 text-center">
@@ -365,4 +367,8 @@ export default function TravelResultsPage() {
       </Suspense>
     </main>
   );
+}
+
+export default function TravelResultsPage() {
+  return <TravelResultsWrapper />;
 }

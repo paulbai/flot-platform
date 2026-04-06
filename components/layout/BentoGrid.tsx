@@ -27,7 +27,7 @@ const cards: BentoCard[] = [
   {
     title: 'Restaurant',
     subtitle: 'Order & pay at table',
-    description: 'Scan, browse the menu, order, and pay — all from your phone.',
+    description: 'Scan, browse the menu, order, and pay. All from your phone.',
     href: '/restaurant',
     accentColor: 'var(--restaurant)',
     bgImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
@@ -45,7 +45,7 @@ const cards: BentoCard[] = [
   {
     title: 'Store',
     subtitle: 'Fashion & Art',
-    description: 'Curated clothing, prints, and objects — gallery meets commerce.',
+    description: 'Curated clothing, prints, and objects. Gallery meets commerce.',
     href: '/store',
     accentColor: 'var(--fashion)',
     bgImage: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&q=80',

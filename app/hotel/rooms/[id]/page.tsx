@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { ArrowLeft, Minus, Plus, Check as CheckIcon } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Button from '@/components/ui/Button';
-import { rooms } from '@/lib/dummy-data/hotel';
+import { useHotelData } from '@/lib/hooks/useCustomizedData';
 import { leonesOf } from '@/lib/currency';
 import type { ExtraField, OrderItem } from '@/lib/types';
 
@@ -41,6 +41,7 @@ const hotelExtraFields: ExtraField[] = [
 export default function RoomDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { rooms, brand } = useHotelData();
   const room = rooms.find((r) => r.id === params.id);
 
   const [checkIn, setCheckIn] = useState('');
@@ -59,7 +60,7 @@ export default function RoomDetailPage() {
 
   if (!room) {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0f0e0d' }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ backgroundColor: brand.backgroundColor }}>
         <p className="text-[var(--text-md)] text-[var(--fog)]">Room not found.</p>
       </main>
     );
@@ -68,7 +69,7 @@ export default function RoomDetailPage() {
   const orderItems: OrderItem[] = [
     {
       id: room.id,
-      name: `${room.name} — ${nights} nights`,
+      name: `${room.name} - ${nights} nights`,
       description: `${room.view} · ${room.size}`,
       quantity: 1,
       unitPrice: priceBreakdown.subtotal,
@@ -78,7 +79,7 @@ export default function RoomDetailPage() {
   ];
 
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#0f0e0d' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
       <NavBar />
 
       <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto pb-24">
@@ -130,7 +131,7 @@ export default function RoomDetailPage() {
             {/* Description */}
             {room.description && (
               <div className="mb-8">
-                <h2 className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: 'var(--hotel)' }}>
+                <h2 className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: brand.accentColor }}>
                   About this Room
                 </h2>
                 <p className="text-[var(--text-sm)] text-[var(--cloud)] leading-relaxed font-body">
@@ -141,13 +142,13 @@ export default function RoomDetailPage() {
 
             {/* Amenities */}
             <div>
-              <h2 className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: 'var(--hotel)' }}>
+              <h2 className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: brand.accentColor }}>
                 Amenities
               </h2>
               <div className="grid grid-cols-2 gap-2">
                 {room.amenities.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-2 text-[var(--text-sm)] text-[var(--cloud)]">
-                    <CheckIcon size={14} style={{ color: 'var(--hotel)' }} />
+                    <CheckIcon size={14} style={{ color: brand.accentColor }} />
                     {amenity}
                   </div>
                 ))}
@@ -166,7 +167,7 @@ export default function RoomDetailPage() {
               <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium mb-1">
                 {room.name}
               </h2>
-              <p className="font-display text-[var(--text-xl)] mb-1" style={{ color: 'var(--hotel)' }}>
+              <p className="font-display text-[var(--text-xl)] mb-1" style={{ color: brand.accentColor }}>
                 ${room.pricePerNight}<span className="text-[var(--text-xs)] text-[var(--fog)] font-body"> / night</span>
               </p>
               <p className="text-[var(--text-xs)] text-[var(--fog)] font-mono mb-6">{leonesOf(room.pricePerNight)} / night</p>
@@ -251,7 +252,7 @@ export default function RoomDetailPage() {
                 </div>
                 <div className="flex justify-between text-[var(--text-md)] pt-2 border-t border-[var(--ash)]">
                   <span className="font-body font-semibold text-[var(--paper)]">Total</span>
-                  <span className="font-display font-bold" style={{ color: 'var(--hotel)' }}>
+                  <span className="font-display font-bold" style={{ color: brand.accentColor }}>
                     ${priceBreakdown.total.toFixed(2)} <span className="text-[var(--fog)] font-mono text-[var(--text-sm)]">({leonesOf(priceBreakdown.total)})</span>
                   </span>
                 </div>
@@ -260,7 +261,7 @@ export default function RoomDetailPage() {
               <Button
                 variant="accent"
                 size="lg"
-                accentColor="#d4a96a"
+                accentColor={brand.accentColor}
                 className="w-full"
                 onClick={() => setCheckoutOpen(true)}
                 disabled={!room.available}
@@ -276,8 +277,8 @@ export default function RoomDetailPage() {
       <AnimatePresence>
         {checkoutOpen && (
           <FlotCheckout
-            brandName="The Grand Maison"
-            accentColor="#d4a96a"
+            brandName={brand.businessName}
+            accentColor={brand.accentColor}
             orderSummary={orderItems}
             currency="USD"
             vertical="hotel"

@@ -56,6 +56,22 @@ export const useCartStore = create<CartState>((set, get) => ({
     return get().items.filter((i) => i.vertical === vertical);
   },
 
+  clearSite: (siteSlug: string) => {
+    set((state) => ({
+      items: state.items.filter((i) => i.siteSlug !== siteSlug),
+    }));
+  },
+
+  getSiteItems: (siteSlug: string) => {
+    return get().items.filter((i) => i.siteSlug === siteSlug);
+  },
+
+  getSiteTotal: (siteSlug: string) => {
+    return get().items
+      .filter((i) => i.siteSlug === siteSlug)
+      .reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  },
+
   getVerticals: () => {
     const verticals = new Set(get().items.map((i) => i.vertical));
     return Array.from(verticals);

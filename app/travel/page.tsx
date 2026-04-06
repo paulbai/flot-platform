@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation';
 import { Minus, Plus, Plane } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Button from '@/components/ui/Button';
-import { airports } from '@/lib/dummy-data/travel';
+import { useTravelData } from '@/lib/hooks/useCustomizedData';
 
 type FlightClass = 'economy' | 'business' | 'first';
 
 export default function TravelPage() {
+  const { brand, heroHeadline, heroSubline, heroDescription, airports } = useTravelData();
   const router = useRouter();
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -45,25 +46,22 @@ export default function TravelPage() {
     );
 
   const inputClass =
-    'w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-4 py-3 text-[var(--text-sm)] font-body text-[var(--paper)] placeholder:text-[var(--fog)] focus:outline-none focus:border-[var(--travel)] transition-colors';
+    'w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-4 py-3 text-[var(--text-sm)] font-body text-[var(--paper)] placeholder:text-[var(--fog)] focus:outline-none transition-colors';
 
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#080d14' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
       <NavBar />
 
-      {/* Hero with animated flight path */}
       <section className="relative min-h-[85vh] flex flex-col justify-center items-center pt-16 px-4">
         {/* Flight path SVG */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
-            {/* Dots */}
-            <circle cx="200" cy="350" r="4" fill="var(--travel)" opacity="0.6" />
-            <circle cx="1000" cy="250" r="4" fill="var(--travel)" opacity="0.6" />
-            {/* Flight arc */}
+            <circle cx="200" cy="350" r="4" fill={brand.accentColor} opacity="0.6" />
+            <circle cx="1000" cy="250" r="4" fill={brand.accentColor} opacity="0.6" />
             <motion.path
               d="M 200 350 Q 600 50 1000 250"
               fill="none"
-              stroke="var(--travel)"
+              stroke={brand.accentColor}
               strokeWidth="1"
               strokeDasharray="6 4"
               opacity="0.3"
@@ -71,20 +69,18 @@ export default function TravelPage() {
               animate={{ pathLength: 1 }}
               transition={{ duration: 2.5, ease: 'easeInOut', delay: 0.5 }}
             />
-            {/* Plane icon on path */}
             <motion.g
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 2.5 }}
             >
-              <circle cx="600" cy="120" r="3" fill="var(--travel)" />
+              <circle cx="600" cy="120" r="3" fill={brand.accentColor} />
             </motion.g>
           </svg>
         </div>
 
-        {/* Subtle grid */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: 'linear-gradient(var(--travel) 1px, transparent 1px), linear-gradient(90deg, var(--travel) 1px, transparent 1px)',
+          backgroundImage: `linear-gradient(${brand.accentColor} 1px, transparent 1px), linear-gradient(90deg, ${brand.accentColor} 1px, transparent 1px)`,
           backgroundSize: '100px 100px',
         }} />
 
@@ -94,13 +90,16 @@ export default function TravelPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="w-12 h-[2px] mx-auto mb-6" style={{ backgroundColor: 'var(--travel)' }} />
+            {brand.logoUrl && (
+              <img src={brand.logoUrl} alt={brand.businessName} className="h-10 mx-auto mb-4 object-contain" />
+            )}
+            <div className="w-12 h-[2px] mx-auto mb-6" style={{ backgroundColor: brand.accentColor }} />
             <h1 className="font-display text-[var(--text-hero)] font-medium leading-[0.9] tracking-tight text-[var(--paper)] mb-4">
-              The world is<br />
-              <span className="italic font-light" style={{ color: 'var(--travel)' }}>closer than you think.</span>
+              {heroHeadline}<br />
+              <span className="italic font-light" style={{ color: brand.accentColor }}>{heroSubline}</span>
             </h1>
             <p className="text-[var(--text-md)] text-[var(--cloud)] font-body max-w-md mx-auto mb-12">
-              Search flights, pick your seat, and book in under a minute.
+              {heroDescription}
             </p>
           </motion.div>
 
@@ -111,7 +110,6 @@ export default function TravelPage() {
             transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="bg-[var(--ink)] border border-[var(--ash)]/50 rounded-sm p-6 text-left"
           >
-            {/* From / To */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="relative">
                 <label className="block text-[var(--text-xs)] font-body text-[var(--fog)] mb-1.5 uppercase tracking-wider">From</label>
@@ -168,7 +166,6 @@ export default function TravelPage() {
               </div>
             </div>
 
-            {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-[var(--text-xs)] font-body text-[var(--fog)] mb-1.5 uppercase tracking-wider">Departure</label>
@@ -183,7 +180,7 @@ export default function TravelPage() {
                       checked={oneWay}
                       onChange={(e) => setOneWay(e.target.checked)}
                       className="w-3 h-3 rounded accent-current"
-                      style={{ accentColor: 'var(--travel)' }}
+                      style={{ accentColor: brand.accentColor }}
                     />
                     <span className="text-[10px] font-body text-[var(--fog)] uppercase tracking-wider">One-way</span>
                   </label>
@@ -198,7 +195,6 @@ export default function TravelPage() {
               </div>
             </div>
 
-            {/* Passengers + Class */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-[var(--text-xs)] font-body text-[var(--fog)] mb-1.5 uppercase tracking-wider">Adults</label>
@@ -225,9 +221,9 @@ export default function TravelPage() {
                       onClick={() => setFlightClass(c)}
                       className="flex-1 px-2 py-2 text-[10px] font-body font-semibold uppercase tracking-wider rounded-sm border transition-all cursor-pointer"
                       style={{
-                        borderColor: flightClass === c ? 'var(--travel)' : 'var(--ash)',
-                        backgroundColor: flightClass === c ? 'var(--travel)' : 'transparent',
-                        color: flightClass === c ? '#080d14' : 'var(--fog)',
+                        borderColor: flightClass === c ? brand.accentColor : 'var(--ash)',
+                        backgroundColor: flightClass === c ? brand.accentColor : 'transparent',
+                        color: flightClass === c ? brand.backgroundColor : 'var(--fog)',
                       }}
                     >
                       {c}
@@ -237,7 +233,7 @@ export default function TravelPage() {
               </div>
             </div>
 
-            <Button variant="accent" size="lg" accentColor="#4a9eff" className="w-full" onClick={handleSearch}>
+            <Button variant="accent" size="lg" accentColor={brand.accentColor} className="w-full" onClick={handleSearch}>
               <Plane size={16} className="mr-1" />
               Search Flights
             </Button>

@@ -7,12 +7,20 @@ interface PaymentState {
   clearPayment: () => void;
 }
 
+function loadSavedPayment(): SavedPayment | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem('flot_saved_payment');
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return null;
+}
+
 export const usePaymentStore = create<PaymentState>((set) => ({
-  savedPayment: null,
+  savedPayment: loadSavedPayment(),
 
   savePayment: (payment: SavedPayment) => {
     set({ savedPayment: payment });
-    // Persist to localStorage for cross-session demo
     if (typeof window !== 'undefined') {
       localStorage.setItem('flot_saved_payment', JSON.stringify(payment));
     }

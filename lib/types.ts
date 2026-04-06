@@ -11,6 +11,7 @@ export interface OrderItem {
   image?: string;
   variant?: string;
   vertical: Vertical;
+  siteSlug?: string;
 }
 
 export interface CartState {
@@ -20,8 +21,11 @@ export interface CartState {
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   clearVertical: (vertical: Vertical) => void;
+  clearSite: (siteSlug: string) => void;
   getTotal: () => number;
   getVerticalItems: (vertical: Vertical) => OrderItem[];
+  getSiteItems: (siteSlug: string) => OrderItem[];
+  getSiteTotal: (siteSlug: string) => number;
   getVerticals: () => Vertical[];
 }
 
@@ -61,10 +65,17 @@ export interface SaveResult {
 }
 
 export interface SavedPayment {
+  method: 'flot' | 'mobile-money' | 'card';
   last4: string;
   brand: string;
   expiry: string;
   profileId: string;
+  /** For mobile money: the phone number */
+  phone?: string;
+  /** For mobile money: Orange or Afrimoney */
+  provider?: string;
+  /** For Flot: the email/username */
+  flotId?: string;
 }
 
 export interface ExtraField {

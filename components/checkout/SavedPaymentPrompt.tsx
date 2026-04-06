@@ -24,6 +24,7 @@ export default function SavedPaymentPrompt({ last4, token, accentColor, onDone }
     const result = await flotMock.savePaymentMethod(token);
     if (result.saved) {
       savePayment({
+        method: 'card',
         last4,
         brand: 'Visa',
         expiry: '12/27',

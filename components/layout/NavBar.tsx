@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { ShoppingBag, Menu, X, Settings } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { leonesOf } from '@/lib/currency';
@@ -82,8 +82,17 @@ export default function NavBar() {
             })}
           </div>
 
-          {/* Right side: Cart + mobile menu */}
+          {/* Right side: Customize + Cart + mobile menu */}
           <div className="flex items-center gap-3">
+            {/* Customize */}
+            <Link
+              href="/customize"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[var(--text-xs)] font-body text-[var(--fog)] hover:text-[var(--paper)] hover:bg-white/5 transition-colors"
+              title="Customize templates"
+            >
+              <Settings size={14} />
+              <span className="hidden lg:inline">Customize</span>
+            </Link>
             {/* Cart */}
             <button
               onClick={() => setCartOpen(true)}
@@ -157,6 +166,16 @@ export default function NavBar() {
                   </Link>
                 );
               })}
+              <Link
+                href="/customize"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-sm transition-colors text-[var(--fog)] hover:text-[var(--cloud)]"
+              >
+                <Settings size={14} />
+                <span className="text-[var(--text-sm)] font-body font-semibold uppercase tracking-[0.1em]">
+                  Customize
+                </span>
+              </Link>
             </div>
           </motion.div>
         )}

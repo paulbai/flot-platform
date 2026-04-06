@@ -7,35 +7,41 @@ import Link from 'next/link';
 import { Calendar, Users, Sparkles, UtensilsCrossed, Bell } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Badge from '@/components/ui/Badge';
-import { rooms } from '@/lib/dummy-data/hotel';
+import { useHotelData } from '@/lib/hooks/useCustomizedData';
 import { leonesOf } from '@/lib/currency';
 
-const services = [
-  { name: 'Spa & Wellness', icon: <Sparkles size={20} />, desc: 'Rejuvenate with our signature treatments' },
-  { name: 'Fine Dining', icon: <UtensilsCrossed size={20} />, desc: 'Michelin-starred cuisine at your table' },
-  { name: 'Concierge', icon: <Bell size={20} />, desc: 'Your every wish, around the clock' },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  Sparkles: <Sparkles size={20} />,
+  UtensilsCrossed: <UtensilsCrossed size={20} />,
+  Bell: <Bell size={20} />,
+};
 
 export default function HotelPage() {
+  const { brand, heroImage, heroHeadline, heroSubline, rooms, services } = useHotelData();
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
 
   return (
-    <main id="main-content" className="min-h-screen" style={{ backgroundColor: '#0f0e0d' }}>
+    <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
       <NavBar />
 
       {/* Hero */}
       <section className="relative min-h-[80vh] flex items-end">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80"
-            alt="Luxury hotel exterior"
+            src={heroImage}
+            alt={brand.businessName}
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0e0d] via-[#0f0e0d]/60 to-transparent" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to top, ${brand.backgroundColor}, ${brand.backgroundColor}99 40%, transparent)`,
+            }}
+          />
         </div>
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-12">
@@ -44,16 +50,19 @@ export default function HotelPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="w-12 h-[2px] mb-6" style={{ backgroundColor: 'var(--hotel)' }} />
+            {brand.logoUrl && (
+              <img src={brand.logoUrl} alt={brand.businessName} className="h-12 mb-4 object-contain" />
+            )}
+            <div className="w-12 h-[2px] mb-6" style={{ backgroundColor: brand.accentColor }} />
             <h1 className="font-display text-[var(--text-hero)] font-medium leading-[0.9] tracking-tight text-[var(--paper)] mb-4">
-              Where rest<br />
-              <span className="italic font-light" style={{ color: 'var(--hotel)' }}>becomes ritual.</span>
+              {heroHeadline}<br />
+              <span className="italic font-light" style={{ color: brand.accentColor }}>{heroSubline}</span>
             </h1>
           </motion.div>
         </div>
       </section>
 
-      {/* Booking Bar — glassmorphism floating */}
+      {/* Booking Bar */}
       <section className="relative z-20 -mt-12 px-4 sm:px-6 lg:px-8 max-w-[1000px] mx-auto mb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -65,37 +74,38 @@ export default function HotelPage() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div>
               <label className="block text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider text-[var(--fog)] mb-2">
-                <Calendar size={12} className="inline mr-1.5" style={{ color: 'var(--hotel)' }} />
+                <Calendar size={12} className="inline mr-1.5" style={{ color: brand.accentColor }} />
                 Check-in
               </label>
               <input
                 type="date"
                 value={checkIn}
                 onChange={(e) => setCheckIn(e.target.value)}
-                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none focus:border-[var(--hotel)] transition-colors"
+                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors"
+                style={{ '--tw-ring-color': brand.accentColor } as React.CSSProperties}
               />
             </div>
             <div>
               <label className="block text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider text-[var(--fog)] mb-2">
-                <Calendar size={12} className="inline mr-1.5" style={{ color: 'var(--hotel)' }} />
+                <Calendar size={12} className="inline mr-1.5" style={{ color: brand.accentColor }} />
                 Check-out
               </label>
               <input
                 type="date"
                 value={checkOut}
                 onChange={(e) => setCheckOut(e.target.value)}
-                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none focus:border-[var(--hotel)] transition-colors"
+                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors"
               />
             </div>
             <div>
               <label className="block text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider text-[var(--fog)] mb-2">
-                <Users size={12} className="inline mr-1.5" style={{ color: 'var(--hotel)' }} />
+                <Users size={12} className="inline mr-1.5" style={{ color: brand.accentColor }} />
                 Guests
               </label>
               <select
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
-                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none focus:border-[var(--hotel)] transition-colors"
+                className="w-full bg-[var(--stone)] border border-[var(--ash)] rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors"
               >
                 {[1, 2, 3, 4].map((n) => (
                   <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
@@ -104,8 +114,8 @@ export default function HotelPage() {
             </div>
             <Link
               href="#rooms"
-              className="flex items-center justify-center px-6 py-2.5 rounded-sm text-[var(--text-sm)] font-body font-semibold uppercase tracking-wider text-[#0f0e0d] transition-colors hover:opacity-90"
-              style={{ backgroundColor: 'var(--hotel)' }}
+              className="flex items-center justify-center px-6 py-2.5 rounded-sm text-[var(--text-sm)] font-body font-semibold uppercase tracking-wider transition-colors hover:opacity-90"
+              style={{ backgroundColor: brand.accentColor, color: brand.backgroundColor }}
             >
               Search
             </Link>
@@ -117,7 +127,7 @@ export default function HotelPage() {
       <section id="rooms" className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-24">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[var(--ash)]" />
-          <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em]" style={{ color: 'var(--hotel)' }}>
+          <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em]" style={{ color: brand.accentColor }}>
             Our Rooms
           </span>
           <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[var(--ash)]" />
@@ -158,7 +168,7 @@ export default function HotelPage() {
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-display text-[var(--text-md)]" style={{ color: 'var(--hotel)' }}>
+                    <p className="font-display text-[var(--text-md)]" style={{ color: brand.accentColor }}>
                       ${room.pricePerNight}
                     </p>
                     <p className="text-[var(--text-xs)] text-[var(--fog)] font-mono">{leonesOf(room.pricePerNight)}</p>
@@ -175,7 +185,7 @@ export default function HotelPage() {
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-24">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[var(--ash)]" />
-          <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em]" style={{ color: 'var(--hotel)' }}>
+          <span className="text-[var(--text-xs)] font-body font-semibold uppercase tracking-[0.25em]" style={{ color: brand.accentColor }}>
             Services
           </span>
           <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[var(--ash)]" />
@@ -189,10 +199,11 @@ export default function HotelPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-[var(--ink)] border border-[var(--ash)]/50 rounded-sm p-6 hover:border-[var(--hotel)]/30 transition-colors"
+              className="border border-[var(--ash)]/50 rounded-sm p-6 transition-colors"
+              style={{ backgroundColor: 'var(--ink)' }}
             >
-              <div className="mb-4" style={{ color: 'var(--hotel)' }}>
-                {service.icon}
+              <div className="mb-4" style={{ color: brand.accentColor }}>
+                {iconMap[service.iconName] || <Sparkles size={20} />}
               </div>
               <h3 className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium mb-2">
                 {service.name}
