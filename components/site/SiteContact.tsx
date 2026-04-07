@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
+import { sanitizeMapSrc } from '@/lib/sanitize';
 import {
   getSectionPadding,
   getBorderRadius,
@@ -83,7 +84,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
     let src = contact.mapEmbed.trim();
     const srcMatch = src.match(/src=["']([^"']+)["']/);
     if (srcMatch) src = srcMatch[1];
-    return src;
+    return sanitizeMapSrc(src);
   })();
 
   const hasMap = !!mapSrc;
@@ -319,6 +320,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
+          sandbox="allow-scripts allow-same-origin"
           title="Map"
         />
       </div>
@@ -540,6 +542,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
+            sandbox="allow-scripts allow-same-origin"
             title="Map"
           />
 

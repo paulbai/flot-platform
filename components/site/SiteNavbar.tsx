@@ -5,6 +5,7 @@ import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
+import { sanitizeHref } from '@/lib/sanitize';
 
 export default function SiteNavbar({ config }: { config: SiteConfig }) {
   const { brand, navbar } = config;
@@ -65,7 +66,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
 
   const ctaButton = navbar.ctaText ? (
     <a
-      href={navbar.ctaLink || '#contact'}
+      href={sanitizeHref(navbar.ctaLink) || '#contact'}
       className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
       style={{ backgroundColor: brand.accentColor }}
     >
@@ -76,7 +77,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
   const linkItem = (link: { label: string; href: string }) => (
     <a
       key={link.href}
-      href={link.href}
+      href={sanitizeHref(link.href)}
       className="text-sm font-medium transition-colors hover:opacity-80"
       style={{ color: showSolidText ? brand.textColor : brand.textColor }}
     >
@@ -100,7 +101,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
             {navbar.links.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={sanitizeHref(link.href)}
                 onClick={() => setMobileOpen(false)}
                 className="text-sm font-medium"
                 style={{ color: brand.textColor }}
@@ -110,7 +111,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
             ))}
             {navbar.ctaText && (
               <a
-                href={navbar.ctaLink || '#contact'}
+                href={sanitizeHref(navbar.ctaLink) || '#contact'}
                 onClick={() => setMobileOpen(false)}
                 className="mt-2 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
                 style={{ backgroundColor: brand.accentColor }}
@@ -139,7 +140,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
             {navbar.links.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={sanitizeHref(link.href)}
                 onClick={() => setMobileOpen(false)}
                 className="text-sm font-medium"
                 style={{ color: brand.textColor }}
@@ -149,7 +150,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
             ))}
             {navbar.ctaText && (
               <a
-                href={navbar.ctaLink || '#contact'}
+                href={sanitizeHref(navbar.ctaLink) || '#contact'}
                 onClick={() => setMobileOpen(false)}
                 className="mt-2 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
                 style={{ backgroundColor: brand.accentColor }}

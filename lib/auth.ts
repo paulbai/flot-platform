@@ -1,15 +1,28 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { verifyOtp } from "./otp";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
         email: { type: "email" },
+        code: { type: "text" },
       },
       async authorize(credentials) {
         const email = credentials?.email as string;
-        if (!email || !email.includes("@")) return null;
+        const code = credentials?.code as string;
+
+        if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          return null;
+        }
+
+        if (!code || typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+          return null;
+        }
+
+        const isValid = verifyOtp(email, code);
+        if (!isValid) return null;
 
         return {
           id: email,

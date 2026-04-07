@@ -6,10 +6,13 @@ const resend = process.env.RESEND_API_KEY
 
 export async function sendOtpEmail(email: string, code: string): Promise<void> {
   if (!resend) {
-    // Fallback: log to console when no API key is configured
-    console.log(`\n========================================`);
-    console.log(`  OTP for ${email}: ${code}`);
-    console.log(`========================================\n`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`\n========================================`);
+      console.log(`  OTP for ${email}: ${code}`);
+      console.log(`========================================\n`);
+    } else {
+      console.warn('RESEND_API_KEY not configured — OTP email not sent');
+    }
     return;
   }
 
@@ -26,7 +29,7 @@ export async function sendOtpEmail(email: string, code: string): Promise<void> {
         <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 24px;">
           <span style="font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #111;">${code}</span>
         </div>
-        <p style="color: #999; font-size: 12px;">This code expires in 5 minutes. If you didn&apos;t request this, you can safely ignore this email.</p>
+        <p style="color: #999; font-size: 12px;">This code expires in 10 minutes. If you didn&apos;t request this, you can safely ignore this email.</p>
       </div>
     `,
   });

@@ -11,6 +11,7 @@ interface ImageUploaderProps {
 }
 
 const MAX_WIDTH = 800;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,6 +53,10 @@ export default function ImageUploader({ value, onChange, label, aspectRatio = '1
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) return;
+    if (file.size > MAX_FILE_SIZE) {
+      alert('Image must be under 5MB');
+      return;
+    }
     setIsProcessing(true);
     try {
       const dataUrl = await resizeImage(file);

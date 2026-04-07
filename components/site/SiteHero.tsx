@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform, useMotionTemplate } from 'framer-motio
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
 import { getBorderRadius } from '@/lib/templates/animations';
+import { sanitizeHref } from '@/lib/sanitize';
 
 export default function SiteHero({ config }: { config: SiteConfig }) {
   const { brand, hero } = config;
@@ -116,7 +117,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
             if (target) {
               target.scrollIntoView({ behavior: 'smooth' });
             } else if (hero.ctaLink) {
-              window.location.href = hero.ctaLink;
+              window.location.href = sanitizeHref(hero.ctaLink);
             }
           }}
           className={`inline-flex items-center rounded-full px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-105 ${floatClass}`}
@@ -127,7 +128,7 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       )}
       {hero.secondaryCtaText && (
         <a
-          href={hero.secondaryCtaLink || '#about'}
+          href={sanitizeHref(hero.secondaryCtaLink) || '#about'}
           className={`inline-flex items-center rounded-full border-2 px-8 py-3.5 text-sm font-semibold transition-transform hover:scale-105 ${floatClass}`}
           style={{
             borderColor: brand.accentColor,

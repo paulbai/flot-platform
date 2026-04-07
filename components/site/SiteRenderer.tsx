@@ -14,6 +14,7 @@ import SiteContact from './SiteContact';
 import SiteBottomCTA from './SiteBottomCTA';
 import SiteFooter from './SiteFooter';
 import SiteFloatingCart from './SiteFloatingCart';
+import { sanitizeFont } from '@/lib/sanitize';
 import TemplateStyles from './TemplateStyles';
 import SectionDivider from './SectionDivider';
 
@@ -53,8 +54,8 @@ function buildGoogleFontsUrl(headingFont: string, bodyFont: string): string {
 
 export default function SiteRenderer({ config }: { config: SiteConfig }) {
   const template = useTemplate(config);
-  const headingFont = config.brand.headingFont || 'Inter';
-  const bodyFont = config.brand.bodyFont || 'Inter';
+  const headingFont = sanitizeFont(config.brand.headingFont, 'Inter');
+  const bodyFont = sanitizeFont(config.brand.bodyFont, 'Inter');
 
   const fontsUrl = useMemo(
     () => buildGoogleFontsUrl(headingFont, bodyFont),

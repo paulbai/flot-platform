@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
+import { sanitizeHref } from '@/lib/sanitize';
 
 const socialIcons: Record<string, LucideIcon> = {
   instagram: Camera,
@@ -121,7 +122,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
               {col.links.map((link, linkIdx) => (
                 <li key={linkIdx}>
                   <a
-                    href={link.href}
+                    href={sanitizeHref(link.href)}
                     className="text-sm opacity-60 transition-opacity hover:opacity-100"
                   >
                     {link.label}
