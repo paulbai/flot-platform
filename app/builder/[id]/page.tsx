@@ -1062,15 +1062,15 @@ export default function SiteEditorPage() {
                         pa('items', updated);
                       }}
                     />
-                    <input
-                      className={`${inputClass} !py-1.5`}
-                      placeholder="Logo URL (optional)"
-                      value={item.logoUrl}
-                      onChange={(e) => {
+                    <ImageUploader
+                      value={item.logoUrl || null}
+                      onChange={(url) => {
                         const updated = [...site.partners.items];
-                        updated[i] = { ...updated[i], logoUrl: e.target.value };
+                        updated[i] = { ...updated[i], logoUrl: url };
                         pa('items', updated);
                       }}
+                      label="Logo"
+                      aspectRatio="3/2"
                     />
                   </div>
                 ))}

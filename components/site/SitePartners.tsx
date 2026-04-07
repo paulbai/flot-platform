@@ -68,7 +68,7 @@ export default function SitePartners({ config }: { config: SiteConfig }) {
               x: {
                 repeat: Infinity,
                 repeatType: 'loop',
-                duration: partners.items.length * 4,
+                duration: partners.items.length * 2,
                 ease: 'linear',
               },
             }}
