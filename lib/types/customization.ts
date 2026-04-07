@@ -90,6 +90,18 @@ export interface ContactSection {
   formFields: string[]; // e.g. ['name', 'email', 'phone', 'message']
 }
 
+export interface PartnerItem {
+  name: string;
+  logoUrl: string;
+}
+
+export interface PartnersSection {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  items: PartnerItem[];
+}
+
 export interface FooterConfig {
   copyrightText: string;
   columns: { title: string; links: { label: string; href: string }[] }[];
@@ -165,6 +177,7 @@ export interface SiteConfig {
   gallery: GallerySection;
   testimonials: TestimonialsSection;
   contact: ContactSection;
+  partners: PartnersSection;
   footer: FooterConfig;
 
   // Vertical-specific content
@@ -198,6 +211,7 @@ export interface SiteBuilderState {
   updateGallery: (id: string, data: Partial<GallerySection>) => void;
   updateTestimonials: (id: string, data: Partial<TestimonialsSection>) => void;
   updateContact: (id: string, data: Partial<ContactSection>) => void;
+  updatePartners: (id: string, data: Partial<PartnersSection>) => void;
   updateFooter: (id: string, data: Partial<FooterConfig>) => void;
   updateHotelContent: (id: string, data: Partial<HotelContent>) => void;
   updateRestaurantContent: (id: string, data: Partial<RestaurantContent>) => void;

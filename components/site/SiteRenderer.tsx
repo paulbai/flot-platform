@@ -10,6 +10,7 @@ import SiteShop from './SiteShop';
 import SiteAbout from './SiteAbout';
 import SiteGallery from './SiteGallery';
 import SiteTestimonials from './SiteTestimonials';
+import SitePartners from './SitePartners';
 import SiteContact from './SiteContact';
 import SiteBottomCTA from './SiteBottomCTA';
 import SiteFooter from './SiteFooter';
@@ -136,6 +137,16 @@ export default function SiteRenderer({ config }: { config: SiteConfig }) {
           accentColor={accentColor}
           bgColor={bgColor}
           nextBgColor={bgColor}
+        />
+
+        <SitePartners config={config} />
+
+        <SectionDivider
+          family={template.designFamily}
+          accentColor={accentColor}
+          bgColor={bgColor}
+          nextBgColor={bgColor}
+          flip={true}
         />
 
         <SiteContact config={config} />

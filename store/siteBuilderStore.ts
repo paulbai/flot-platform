@@ -15,6 +15,7 @@ import type {
   GallerySection,
   TestimonialsSection,
   ContactSection,
+  PartnersSection,
   FooterConfig,
   SEOConfig,
 } from '@/lib/types/customization';
@@ -40,6 +41,7 @@ const verticalDefaults: Record<Vertical, {
   about: Partial<AboutSection>;
   gallery: Partial<GallerySection>;
   testimonials: Partial<TestimonialsSection>;
+  partners: Partial<PartnersSection>;
 }> = {
   hotel: {
     brand: { accentColor: '#d4a96a', backgroundColor: '#0f0e0d', textColor: '#ffffff', headingFont: 'Playfair Display', bodyFont: 'Lato' },
@@ -83,6 +85,18 @@ const verticalDefaults: Record<Vertical, {
         { name: 'Amara Okafor', role: 'Luxury Consultant', quote: 'This is what hospitality should feel like. Impeccable service, stunning design, and a sense of calm that stays with you.', avatar: '', rating: 5 },
       ],
     },
+    partners: {
+      title: 'Trusted By',
+      subtitle: 'Our esteemed partners',
+      items: [
+        { name: 'Marriott International', logoUrl: '' },
+        { name: 'Hilton Hotels', logoUrl: '' },
+        { name: 'Four Seasons', logoUrl: '' },
+        { name: 'Ritz-Carlton', logoUrl: '' },
+        { name: 'Hyatt Hotels', logoUrl: '' },
+        { name: 'Accor Group', logoUrl: '' },
+      ],
+    },
   },
   restaurant: {
     brand: { accentColor: '#e85d3a', backgroundColor: '#0d0a08', textColor: '#ffffff', headingFont: 'Cormorant Garamond', bodyFont: 'Syne' },
@@ -121,6 +135,18 @@ const verticalDefaults: Record<Vertical, {
       items: [
         { name: 'Elena Torres', role: 'Food Critic', quote: 'A masterclass in Italian cuisine. The lobster tagliatelle is the best I have had outside of Rome.', avatar: '', rating: 5 },
         { name: 'David Park', role: 'Regular Guest', quote: 'We come here every anniversary. The ambiance, the service, the food. Consistently perfect.', avatar: '', rating: 5 },
+      ],
+    },
+    partners: {
+      title: 'Our Partners',
+      subtitle: 'Brands we work with',
+      items: [
+        { name: 'Michelin Guide', logoUrl: '' },
+        { name: 'OpenTable', logoUrl: '' },
+        { name: 'Uber Eats', logoUrl: '' },
+        { name: 'DoorDash', logoUrl: '' },
+        { name: 'Wine Spectator', logoUrl: '' },
+        { name: 'James Beard Foundation', logoUrl: '' },
       ],
     },
   },
@@ -162,6 +188,18 @@ const verticalDefaults: Record<Vertical, {
         { name: 'Marcus Webb', role: 'Fashion Editor', quote: 'Finally, an online store that understands curation. Every item feels intentional and beautifully made.', avatar: '', rating: 5 },
       ],
     },
+    partners: {
+      title: 'Featured In',
+      subtitle: 'As seen in',
+      items: [
+        { name: 'Vogue', logoUrl: '' },
+        { name: 'GQ Magazine', logoUrl: '' },
+        { name: 'Highsnobiety', logoUrl: '' },
+        { name: 'Hypebeast', logoUrl: '' },
+        { name: 'Complex', logoUrl: '' },
+        { name: 'Elle Décor', logoUrl: '' },
+      ],
+    },
   },
   travel: {
     brand: { accentColor: '#4a9eff', backgroundColor: '#080d14', textColor: '#ffffff', headingFont: 'Space Grotesk', bodyFont: 'DM Sans' },
@@ -200,6 +238,18 @@ const verticalDefaults: Record<Vertical, {
       items: [
         { name: 'Nina Petrova', role: 'Digital Nomad', quote: 'The booking process is incredibly smooth. I found and booked a business class flight to Tokyo in under 2 minutes.', avatar: '', rating: 5 },
         { name: 'Tom Hartley', role: 'Frequent Flyer', quote: 'Best seat selection interface I have used. Plus the prices are consistently lower than other booking sites.', avatar: '', rating: 5 },
+      ],
+    },
+    partners: {
+      title: 'Airline Partners',
+      subtitle: 'We work with the best',
+      items: [
+        { name: 'Emirates', logoUrl: '' },
+        { name: 'Singapore Airlines', logoUrl: '' },
+        { name: 'Lufthansa', logoUrl: '' },
+        { name: 'Qatar Airways', logoUrl: '' },
+        { name: 'British Airways', logoUrl: '' },
+        { name: 'Air France', logoUrl: '' },
       ],
     },
   },
@@ -297,6 +347,12 @@ function createDefaultSite(vertical: Vertical, name: string, ownerEmail = '', te
       mapEmbed: '',
       showForm: true,
       formFields: ['name', 'email', 'phone', 'message'],
+    },
+    partners: {
+      enabled: true,
+      title: vd.partners?.title || 'Trusted By',
+      subtitle: vd.partners?.subtitle || '',
+      items: vd.partners?.items || [],
     },
     footer: {
       copyrightText: `© ${new Date().getFullYear()} ${name}. All rights reserved.`,
@@ -443,6 +499,12 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
       updateContact: (id, data) => set((s) => ({
         sites: s.sites.map((site) =>
           site.id === id ? { ...site, contact: { ...site.contact, ...data }, updatedAt: new Date().toISOString() } : site
+        ),
+      })),
+
+      updatePartners: (id, data) => set((s) => ({
+        sites: s.sites.map((site) =>
+          site.id === id ? { ...site, partners: { ...site.partners, ...data }, updatedAt: new Date().toISOString() } : site
         ),
       })),
 

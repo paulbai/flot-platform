@@ -59,6 +59,7 @@ import {
   ThumbsUp,
   CheckCircle,
   Layers,
+  Handshake,
   type LucideIcon,
 } from 'lucide-react';
 import { useSiteBuilderStore } from '@/store/siteBuilderStore';
@@ -316,6 +317,7 @@ export default function SiteEditorPage() {
     updateGallery,
     updateTestimonials,
     updateContact,
+    updatePartners,
     updateFooter,
     updateSEO,
     updateSite,
@@ -366,6 +368,12 @@ export default function SiteEditorPage() {
     );
   }
 
+  // Ensure partners section exists for backward compatibility
+  if (site && !site.partners) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (site as any).partners = { enabled: true, title: 'Trusted By', subtitle: '', items: [] };
+  }
+
   /* ─── Publish helpers ─── */
 
   function openPublish() {
@@ -407,6 +415,7 @@ export default function SiteEditorPage() {
   const gl = (field: string, value: unknown) => updateGallery(id, { [field]: value });
   const te = (field: string, value: unknown) => updateTestimonials(id, { [field]: value });
   const ct = (field: string, value: unknown) => updateContact(id, { [field]: value });
+  const pa = (field: string, value: unknown) => updatePartners(id, { [field]: value });
   const ft = (field: string, value: unknown) => updateFooter(id, { [field]: value });
   const se = (field: string, value: string) => updateSEO(id, { [field]: value });
 
@@ -995,6 +1004,72 @@ export default function SiteEditorPage() {
                         const updated = [...site.testimonials.items];
                         updated[i] = { ...updated[i], avatar: e.target.value };
                         te('items', updated);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </SectionAccordion>
+
+          {/* ─── PARTNERS / TRUSTED BY ─── */}
+          <SectionAccordion title="Partners" icon={<Handshake className="w-4 h-4" />} open={isOpen('partners')} onToggle={() => toggle('partners')}>
+            <Toggle label="Enable Partners Section" checked={site.partners.enabled} onChange={(v) => pa('enabled', v)} />
+            <Field label="Title">
+              <input className={inputClass} value={site.partners.title} onChange={(e) => pa('title', e.target.value)} />
+            </Field>
+            <Field label="Subtitle">
+              <input className={inputClass} value={site.partners.subtitle} onChange={(e) => pa('subtitle', e.target.value)} />
+            </Field>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className={labelClass}>Partner Logos</label>
+                <button
+                  onClick={() =>
+                    pa('items', [
+                      ...site.partners.items,
+                      { name: '', logoUrl: '' },
+                    ])
+                  }
+                  className="text-[10px] text-[#888] hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add
+                </button>
+              </div>
+              <div className="space-y-3">
+                {site.partners.items.map((item: { name: string; logoUrl: string }, i: number) => (
+                  <div key={i} className="bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[#555]">Partner {i + 1}</span>
+                      <button
+                        onClick={() => {
+                          const updated = site.partners.items.filter((_: unknown, idx: number) => idx !== i);
+                          pa('items', updated);
+                        }}
+                        className="text-[#555] hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <input
+                      className={`${inputClass} !py-1.5`}
+                      placeholder="Company Name"
+                      value={item.name}
+                      onChange={(e) => {
+                        const updated = [...site.partners.items];
+                        updated[i] = { ...updated[i], name: e.target.value };
+                        pa('items', updated);
+                      }}
+                    />
+                    <input
+                      className={`${inputClass} !py-1.5`}
+                      placeholder="Logo URL (optional)"
+                      value={item.logoUrl}
+                      onChange={(e) => {
+                        const updated = [...site.partners.items];
+                        updated[i] = { ...updated[i], logoUrl: e.target.value };
+                        pa('items', updated);
                       }}
                     />
                   </div>
