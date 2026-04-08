@@ -14,9 +14,11 @@ export function db() {
     if (!raw) {
       throw new Error('Missing required environment variable: TURSO_DATABASE_URL');
     }
+    // Aggressive trim to handle any invisible chars from env vars
+    const url = raw.trim().replace(/[\r\n\t\x00-\x1f]/g, '');
     const client = createClient({
-      url: raw,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      url,
+      authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
     });
     _db = drizzle(client, { schema });
   }
