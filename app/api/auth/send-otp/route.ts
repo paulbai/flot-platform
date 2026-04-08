@@ -57,10 +57,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, channel });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join('\n') : '';
-    console.error('[send-otp]', msg, stack);
+    const cause = err instanceof Error && err.cause ? String(err.cause) : undefined;
+    const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 6).join(' | ') : '';
+    console.error('[send-otp] msg:', msg, 'cause:', cause, 'stack:', stack);
     return NextResponse.json(
-      { error: 'Failed to send verification code', debug: msg, dbUrl: process.env.TURSO_DATABASE_URL?.slice(0, 40) },
+      { error: 'Failed to send verification code', debug: msg, cause, stack: stack?.slice(0, 200) },
       { status: 500 }
     );
   }
