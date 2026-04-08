@@ -30,7 +30,13 @@ export function getDb() {
 type DbType = ReturnType<typeof getDb>;
 
 export const db: DbType = new Proxy({} as DbType, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getDb(), prop, receiver);
+  get(_target, prop) {
+    const instance = getDb();
+    const value = Reflect.get(instance, prop, instance);
+    // Bind methods to the real instance so `this` context is correct
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
   },
 });
