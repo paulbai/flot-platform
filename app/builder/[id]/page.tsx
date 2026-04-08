@@ -306,6 +306,13 @@ export default function SiteEditorPage() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { setHydrated(true); }, []);
 
+  const syncSite = useSiteBuilderStore((s) => s.syncSite);
+  useEffect(() => {
+    if (id) {
+      syncSite(id);
+    }
+  }, [id, syncSite]);
+
   const site = useSiteBuilderStore((s) => s.getSite(id));
   const {
     updateBrand,

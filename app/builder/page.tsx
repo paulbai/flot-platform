@@ -43,9 +43,16 @@ export default function BuilderDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const { sites, createSite, deleteSite } = useSiteBuilderStore();
+  const { sites, createSite, deleteSite, fetchSites } = useSiteBuilderStore();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { setHydrated(true); }, []);
+
+  // Fetch sites from API when user is authenticated
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetchSites();
+    }
+  }, [session?.user?.email, fetchSites]);
 
   const userEmail = session?.user?.email ?? '';
   const mySites = useMemo(
