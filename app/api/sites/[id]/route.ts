@@ -23,7 +23,7 @@ export const GET = auth(async (req, { params }: { params: Promise<{ id: string }
 
   const { id } = await params;
 
-  const rows = await db.select().from(sites)
+  const rows = await db().select().from(sites)
     .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   if (rows.length === 0) {
@@ -54,7 +54,7 @@ export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string
   const updates = await req.json();
 
   // Verify ownership
-  const rows = await db.select().from(sites)
+  const rows = await db().select().from(sites)
     .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   if (rows.length === 0) {
@@ -68,7 +68,7 @@ export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string
   const merged = { ...existingConfig, ...updates };
 
   // Update top-level columns if they changed
-  await db.update(sites)
+  await db().update(sites)
     .set({
       config: merged,
       slug: (updates.slug as string) || existing.slug,
@@ -90,7 +90,7 @@ export const DELETE = auth(async (req, { params }: { params: Promise<{ id: strin
 
   const { id } = await params;
 
-  await db.delete(sites)
+  await db().delete(sites)
     .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   return NextResponse.json({ success: true });

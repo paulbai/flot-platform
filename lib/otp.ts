@@ -14,10 +14,10 @@ export async function generateOtp(email: string): Promise<string> {
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
   // Delete any existing OTP for this email
-  await db.delete(otpCodes).where(eq(otpCodes.email, key));
+  await db().delete(otpCodes).where(eq(otpCodes.email, key));
 
   // Insert new OTP
-  await db.insert(otpCodes).values({
+  await db().insert(otpCodes).values({
     email: key,
     code,
     attempts: 0,
@@ -32,7 +32,7 @@ export async function verifyOtp(email: string, code: string): Promise<boolean> {
   const now = new Date();
 
   // Find the OTP entry
-  const entries = await db.select().from(otpCodes)
+  const entries = await db().select().from(otpCodes)
     .where(and(eq(otpCodes.email, key), gt(otpCodes.expiresAt, now)));
 
   if (entries.length === 0) return false;
@@ -41,12 +41,12 @@ export async function verifyOtp(email: string, code: string): Promise<boolean> {
 
   // Check brute-force attempts
   if (entry.attempts >= MAX_ATTEMPTS) {
-    await db.delete(otpCodes).where(eq(otpCodes.id, entry.id));
+    await db().delete(otpCodes).where(eq(otpCodes.id, entry.id));
     return false;
   }
 
   // Increment attempts
-  await db.update(otpCodes)
+  await db().update(otpCodes)
     .set({ attempts: entry.attempts + 1 })
     .where(eq(otpCodes.id, entry.id));
 
@@ -59,7 +59,7 @@ export async function verifyOtp(email: string, code: string): Promise<boolean> {
   if (mismatch !== 0) return false;
 
   // Success — delete the OTP
-  await db.delete(otpCodes).where(eq(otpCodes.id, entry.id));
+  await db().delete(otpCodes).where(eq(otpCodes.id, entry.id));
   return true;
 }
 
@@ -67,14 +67,14 @@ export async function isRateLimited(key: string): Promise<boolean> {
   const now = new Date();
 
   // Clean up expired entries
-  await db.delete(rateLimits).where(lt(rateLimits.resetAt, now));
+  await db().delete(rateLimits).where(lt(rateLimits.resetAt, now));
 
   // Check current rate
-  const entries = await db.select().from(rateLimits)
+  const entries = await db().select().from(rateLimits)
     .where(and(eq(rateLimits.key, key), gt(rateLimits.resetAt, now)));
 
   if (entries.length === 0) {
-    await db.insert(rateLimits).values({
+    await db().insert(rateLimits).values({
       key,
       count: 1,
       resetAt: new Date(Date.now() + RATE_LIMIT_WINDOW_MS),
@@ -83,7 +83,7 @@ export async function isRateLimited(key: string): Promise<boolean> {
   }
 
   const entry = entries[0];
-  await db.update(rateLimits)
+  await db().update(rateLimits)
     .set({ count: entry.count + 1 })
     .where(eq(rateLimits.id, entry.id));
 
@@ -93,6 +93,6 @@ export async function isRateLimited(key: string): Promise<boolean> {
 // Cleanup expired entries (call periodically or on each request)
 export async function cleanupExpired(): Promise<void> {
   const now = new Date();
-  await db.delete(otpCodes).where(lt(otpCodes.expiresAt, now));
-  await db.delete(rateLimits).where(lt(rateLimits.resetAt, now));
+  await db().delete(otpCodes).where(lt(otpCodes.expiresAt, now));
+  await db().delete(rateLimits).where(lt(rateLimits.resetAt, now));
 }

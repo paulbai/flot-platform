@@ -11,7 +11,7 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  const rows = await db.select().from(sites)
+  const rows = await db().select().from(sites)
     .where(and(eq(sites.slug, slug), eq(sites.status, 'published')));
 
   if (rows.length === 0) {

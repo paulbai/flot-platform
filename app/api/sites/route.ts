@@ -23,7 +23,7 @@ export const GET = auth(async (req) => {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const rows = await db.select().from(sites).where(eq(sites.ownerEmail, userId));
+  const rows = await db().select().from(sites).where(eq(sites.ownerEmail, userId));
 
   const configs: SiteConfig[] = rows.map((row) => ({
     ...(row.config as Omit<SiteConfig, 'id' | 'slug' | 'status' | 'createdAt' | 'updatedAt'>),
@@ -52,10 +52,10 @@ export const POST = auth(async (req) => {
   }
 
   // Ensure user exists in users table (upsert)
-  const existingUser = await db.select().from(users).where(eq(users.id, userId));
+  const existingUser = await db().select().from(users).where(eq(users.id, userId));
   if (existingUser.length === 0) {
     const isPhone = userId.startsWith('+');
-    await db.insert(users).values({
+    await db().insert(users).values({
       id: userId,
       email: isPhone ? null : userId,
       phone: isPhone ? userId : null,
@@ -66,7 +66,7 @@ export const POST = auth(async (req) => {
   // Force owner to be the authenticated user
   config.ownerEmail = userId;
 
-  await db.insert(sites).values({
+  await db().insert(sites).values({
     id: config.id,
     slug: config.slug,
     ownerEmail: userId,
