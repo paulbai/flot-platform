@@ -56,9 +56,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, channel });
   } catch (err) {
-    console.error('[send-otp]', err instanceof Error ? err.message : err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack?.split('\n').slice(0, 4).join('\n') : '';
+    console.error('[send-otp]', msg, stack);
     return NextResponse.json(
-      { error: 'Failed to send verification code' },
+      { error: 'Failed to send verification code', debug: msg, dbUrl: process.env.TURSO_DATABASE_URL?.slice(0, 40) },
       { status: 500 }
     );
   }

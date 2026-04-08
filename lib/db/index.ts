@@ -10,11 +10,15 @@ let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 export function db() {
   if (!_db) {
-    if (!process.env.TURSO_DATABASE_URL) {
+    const raw = process.env.TURSO_DATABASE_URL;
+    if (!raw) {
       throw new Error('Missing required environment variable: TURSO_DATABASE_URL');
     }
+    // @libsql/client/web requires https:// — convert libsql:// if present
+    const url = raw.replace(/^libsql:\/\//, 'https://').trim();
+    console.log('[db] connecting to:', url.slice(0, 30) + '…');
     const client = createClient({
-      url: process.env.TURSO_DATABASE_URL.replace('libsql://', 'https://'),
+      url,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
     _db = drizzle(client, { schema });
