@@ -225,6 +225,10 @@ export interface SiteBuilderState {
 
   getSite: (id: string) => SiteConfig | undefined;
   getSiteBySlug: (slug: string) => SiteConfig | undefined;
+
+  // API sync
+  fetchSites: () => Promise<void>;
+  syncSite: (id: string) => Promise<void>;
 }
 
 /* ── Legacy types (used by demo vertical pages + old customization store) ── */

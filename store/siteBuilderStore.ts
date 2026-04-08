@@ -399,6 +399,52 @@ function createDefaultSite(vertical: Vertical, name: string, ownerEmail = '', te
   return site;
 }
 
+/* ── API helpers ── */
+
+async function apiGet<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+async function apiPost<T>(url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+async function apiPatch(url: string, body: unknown): Promise<void> {
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
+async function apiDelete(url: string): Promise<void> {
+  const res = await fetch(url, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
+const saveTimers = new Map<string, NodeJS.Timeout>();
+
+function debouncedSave(id: string, getSite: (id: string) => SiteConfig | undefined) {
+  const existing = saveTimers.get(id);
+  if (existing) clearTimeout(existing);
+  saveTimers.set(id, setTimeout(() => {
+    const site = getSite(id);
+    if (site) {
+      apiPatch(`/api/sites/${id}`, site).catch(console.error);
+    }
+    saveTimers.delete(id);
+  }, 1000));
+}
+
 export const useSiteBuilderStore = create<SiteBuilderState>()(
   persist(
     (set, get) => ({
@@ -408,6 +454,7 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
       createSite: (vertical, name, ownerEmail, templateId) => {
         const site = createDefaultSite(vertical, name, ownerEmail, templateId);
         set((s) => ({ sites: [...s.sites, site], activeSiteId: site.id }));
+        apiPost('/api/sites', site).catch(console.error);
         return site.id;
       },
 
@@ -416,6 +463,7 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
           sites: s.sites.filter((site) => site.id !== id),
           activeSiteId: s.activeSiteId === id ? null : s.activeSiteId,
         }));
+        apiDelete(`/api/sites/${id}`).catch(console.error);
       },
 
       duplicateSite: (id) => {
@@ -431,112 +479,164 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
           brand: { ...original.brand, businessName: original.brand.businessName + ' (Copy)' },
         };
         set((s) => ({ sites: [...s.sites, newSite] }));
+        apiPost('/api/sites', newSite).catch(console.error);
         return newSite.id;
       },
 
       setActiveSite: (id) => set({ activeSiteId: id }),
 
-      updateSite: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, ...data, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateSite: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, ...data, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateBrand: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, brand: { ...site.brand, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateBrand: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, brand: { ...site.brand, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateBusinessInfo: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, businessInfo: { ...site.businessInfo, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateBusinessInfo: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, businessInfo: { ...site.businessInfo, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateSocial: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, social: { ...site.social, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateSocial: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, social: { ...site.social, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateSEO: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, seo: { ...site.seo, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateSEO: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, seo: { ...site.seo, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateNavbar: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, navbar: { ...site.navbar, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateNavbar: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, navbar: { ...site.navbar, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateHero: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, hero: { ...site.hero, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateHero: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, hero: { ...site.hero, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateAbout: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, about: { ...site.about, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateAbout: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, about: { ...site.about, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateGallery: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, gallery: { ...site.gallery, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateGallery: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, gallery: { ...site.gallery, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateTestimonials: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, testimonials: { ...site.testimonials, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateTestimonials: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, testimonials: { ...site.testimonials, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateContact: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, contact: { ...site.contact, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateContact: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, contact: { ...site.contact, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updatePartners: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, partners: { ...site.partners, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updatePartners: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, partners: { ...site.partners, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateFooter: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, footer: { ...site.footer, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateFooter: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, footer: { ...site.footer, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateHotelContent: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, hotelContent: { ...site.hotelContent!, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateHotelContent: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, hotelContent: { ...site.hotelContent!, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateRestaurantContent: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, restaurantContent: { ...site.restaurantContent!, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateRestaurantContent: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, restaurantContent: { ...site.restaurantContent!, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateStoreContent: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, storeContent: { ...site.storeContent!, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateStoreContent: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, storeContent: { ...site.storeContent!, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
-      updateTravelContent: (id, data) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, travelContent: { ...site.travelContent!, ...data }, updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      updateTravelContent: (id, data) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, travelContent: { ...site.travelContent!, ...data }, updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        debouncedSave(id, (sid) => get().getSite(sid));
+      },
 
       updateTemplate: (id, templateId) => {
         const tmpl = getTemplate(templateId);
@@ -563,22 +663,51 @@ export const useSiteBuilderStore = create<SiteBuilderState>()(
             };
           }),
         }));
+        debouncedSave(id, (sid) => get().getSite(sid));
       },
 
-      publishSite: (id) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, status: 'published', updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      publishSite: (id) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, status: 'published', updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        const site = get().getSite(id);
+        if (site) apiPatch(`/api/sites/${id}`, site).catch(console.error);
+      },
 
-      unpublishSite: (id) => set((s) => ({
-        sites: s.sites.map((site) =>
-          site.id === id ? { ...site, status: 'draft', updatedAt: new Date().toISOString() } : site
-        ),
-      })),
+      unpublishSite: (id) => {
+        set((s) => ({
+          sites: s.sites.map((site) =>
+            site.id === id ? { ...site, status: 'draft', updatedAt: new Date().toISOString() } : site
+          ),
+        }));
+        const site = get().getSite(id);
+        if (site) apiPatch(`/api/sites/${id}`, site).catch(console.error);
+      },
 
       getSite: (id) => get().sites.find((s) => s.id === id),
       getSiteBySlug: (slug) => get().sites.find((s) => s.slug === slug),
+
+      fetchSites: async () => {
+        try {
+          const sites = await apiGet<SiteConfig[]>('/api/sites');
+          set({ sites });
+        } catch (err) {
+          console.error('Failed to fetch sites:', err);
+        }
+      },
+
+      syncSite: async (id) => {
+        try {
+          const site = await apiGet<SiteConfig>(`/api/sites/${id}`);
+          set((s) => ({
+            sites: s.sites.map((existing) => existing.id === id ? site : existing),
+          }));
+        } catch (err) {
+          console.error('Failed to sync site:', err);
+        }
+      },
     }),
     {
       name: 'flot-site-builder',
