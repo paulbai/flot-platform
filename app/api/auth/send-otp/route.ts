@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { generateOtp, isRateLimited, cleanupExpired } from '@/lib/otp';
 import { sendOtpEmail } from '@/lib/email';
+import { sendOtpSms } from '@/lib/sms';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+[1-9]\d{6,14}$/;
 
 export async function POST(request: Request) {
   try {
@@ -17,30 +21,46 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email } = await request.json();
+    const body = await request.json();
+    const { email, phone } = body as { email?: string; phone?: string };
 
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Determine channel: email or phone
+    let identifier: string;
+    let channel: 'email' | 'sms';
+
+    if (email && typeof email === 'string' && EMAIL_RE.test(email)) {
+      identifier = email.toLowerCase().trim();
+      channel = 'email';
+    } else if (phone && typeof phone === 'string' && PHONE_RE.test(phone)) {
+      identifier = phone.trim();
+      channel = 'sms';
+    } else {
       return NextResponse.json(
-        { error: 'Valid email is required' },
+        { error: 'A valid email or phone number is required' },
         { status: 400 }
       );
     }
 
-    // Rate limit by email
-    if (await isRateLimited(`email:${email.toLowerCase().trim()}`)) {
+    // Rate limit by identifier
+    if (await isRateLimited(`${channel}:${identifier}`)) {
       return NextResponse.json(
-        { error: 'Too many requests for this email. Please wait a minute.' },
+        { error: `Too many requests. Please wait a minute.` },
         { status: 429 }
       );
     }
 
-    const code = await generateOtp(email);
-    await sendOtpEmail(email, code);
+    const code = await generateOtp(identifier);
 
-    return NextResponse.json({ success: true });
+    if (channel === 'email') {
+      await sendOtpEmail(identifier, code);
+    } else {
+      await sendOtpSms(identifier, code);
+    }
+
+    return NextResponse.json({ success: true, channel });
   } catch {
     return NextResponse.json(
-      { error: 'Failed to send OTP' },
+      { error: 'Failed to send verification code' },
       { status: 500 }
     );
   }

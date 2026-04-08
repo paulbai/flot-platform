@@ -47,17 +47,19 @@ export default function BuilderDashboard() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { setHydrated(true); }, []);
 
+  // User identifier: email or phone
+  const userId = session?.user?.email || (session?.user?.name?.startsWith('+') ? session.user.name : '') || '';
+
   // Fetch sites from API when user is authenticated
   useEffect(() => {
-    if (session?.user?.email) {
+    if (userId) {
       fetchSites();
     }
-  }, [session?.user?.email, fetchSites]);
+  }, [userId, fetchSites]);
 
-  const userEmail = session?.user?.email ?? '';
   const mySites = useMemo(
-    () => sites.filter((s) => s.ownerEmail === userEmail),
-    [sites, userEmail]
+    () => sites.filter((s) => s.ownerEmail === userId),
+    [sites, userId]
   );
 
   const [showCreate, setShowCreate] = useState(false);
@@ -90,7 +92,7 @@ export default function BuilderDashboard() {
 
   function handleCreateSite() {
     if (!selectedVertical || !businessName.trim()) return;
-    const id = createSite(selectedVertical, businessName.trim(), userEmail, selectedTemplate || undefined);
+    const id = createSite(selectedVertical, businessName.trim(), userId, selectedTemplate || undefined);
     setShowCreate(false);
     setStep('vertical');
     setSelectedVertical(null);

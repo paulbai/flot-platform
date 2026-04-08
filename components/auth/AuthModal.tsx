@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, ArrowRight, ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
+import { X, Mail, Phone, ArrowRight, ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 interface AuthModalProps {
@@ -13,9 +13,11 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
+  const [mode, setMode] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [step, setStep] = useState<'input' | 'code'>('input');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const codeInputRef = useRef<HTMLInputElement>(null);
@@ -24,8 +26,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   useEffect(() => {
     if (isOpen) {
       setEmail('');
+      setPhone('');
       setCode('');
-      setStep('email');
+      setStep('input');
       setError('');
       setLoading(false);
     }
@@ -46,18 +49,29 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     }
   }, [step]);
 
+  const displayIdentifier = mode === 'email' ? email : phone;
+
+  function isValidInput() {
+    if (mode === 'email') {
+      return email && email.includes('@');
+    }
+    // E.164: +<country code><number>, min 7 digits total
+    return phone && /^\+[1-9]\d{6,14}$/.test(phone);
+  }
+
   async function handleSendOtp() {
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email');
+    if (!isValidInput()) {
+      setError(mode === 'email' ? 'Please enter a valid email' : 'Please enter a valid phone number (e.g. +1234567890)');
       return;
     }
     setLoading(true);
     setError('');
     try {
+      const payload = mode === 'email' ? { email } : { phone };
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -82,9 +96,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setError('');
     try {
       const result = await signIn('credentials', {
-        email,
+        ...(mode === 'email' ? { email } : { phone }),
         code,
-        redirect: false,
+        redirect: false as const,
       });
       if (result?.error) {
         setError('Invalid or expired code. Please try again.');
@@ -102,10 +116,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setError('');
     setLoading(true);
     try {
+      const payload = mode === 'email' ? { email } : { phone };
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -122,9 +137,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   }
 
   function handleBack() {
-    setStep('email');
+    setStep('input');
     setCode('');
     setError('');
+  }
+
+  function switchMode(newMode: 'email' | 'phone') {
+    setMode(newMode);
+    setError('');
+    setEmail('');
+    setPhone('');
   }
 
   const [mounted, setMounted] = useState(false);
@@ -166,32 +188,76 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               </button>
 
               <div className="p-8">
-                {step === 'email' ? (
+                {step === 'input' ? (
                   <>
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6">
                       <div className="w-14 h-14 rounded-xl bg-[var(--flot)]/10 flex items-center justify-center mx-auto mb-4">
-                        <Mail size={24} className="text-[var(--flot)]" />
+                        {mode === 'email' ? (
+                          <Mail size={24} className="text-[var(--flot)]" />
+                        ) : (
+                          <Phone size={24} className="text-[var(--flot)]" />
+                        )}
                       </div>
                       <h2 className="text-xl font-bold text-white font-display mb-2">
                         Get Started
                       </h2>
                       <p className="text-sm text-[var(--fog)]">
-                        Enter your email to create your free business page
+                        {mode === 'email'
+                          ? 'Enter your email to create your free business page'
+                          : 'Enter your phone number to get started'}
                       </p>
                     </div>
 
-                    {/* Email input */}
+                    {/* Email / Phone Toggle */}
+                    <div className="flex bg-white/5 rounded-xl p-1 mb-5">
+                      <button
+                        onClick={() => switchMode('email')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                          mode === 'email'
+                            ? 'bg-[var(--flot)] text-[var(--void)]'
+                            : 'text-[var(--fog)] hover:text-white'
+                        }`}
+                      >
+                        <Mail size={14} />
+                        Email
+                      </button>
+                      <button
+                        onClick={() => switchMode('phone')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                          mode === 'phone'
+                            ? 'bg-[var(--flot)] text-[var(--void)]'
+                            : 'text-[var(--fog)] hover:text-white'
+                        }`}
+                      >
+                        <Phone size={14} />
+                        Phone
+                      </button>
+                    </div>
+
+                    {/* Input */}
                     <div className="space-y-4">
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
-                        placeholder="you@example.com"
-                        className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-[var(--ash)]/30 text-white placeholder:text-[var(--fog)]/50 text-sm focus:border-[var(--flot)] focus:ring-1 focus:ring-[var(--flot)] outline-none transition-all"
-                        autoFocus
-                      />
+                      {mode === 'email' ? (
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
+                          placeholder="you@example.com"
+                          className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-[var(--ash)]/30 text-white placeholder:text-[var(--fog)]/50 text-sm focus:border-[var(--flot)] focus:ring-1 focus:ring-[var(--flot)] outline-none transition-all"
+                          autoFocus
+                        />
+                      ) : (
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => { setPhone(e.target.value); setError(''); }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
+                          placeholder="+1 234 567 8900"
+                          className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-[var(--ash)]/30 text-white placeholder:text-[var(--fog)]/50 text-sm focus:border-[var(--flot)] focus:ring-1 focus:ring-[var(--flot)] outline-none transition-all"
+                          autoFocus
+                        />
+                      )}
 
                       {error && (
                         <p className="text-xs text-red-400 text-center">{error}</p>
@@ -199,7 +265,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
                       <button
                         onClick={handleSendOtp}
-                        disabled={loading || !email}
+                        disabled={loading || (mode === 'email' ? !email : !phone)}
                         className="w-full py-3.5 rounded-xl text-sm font-bold text-[var(--void)] bg-[var(--flot)] hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {loading ? (
@@ -221,10 +287,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                         <ShieldCheck size={24} className="text-[var(--flot)]" />
                       </div>
                       <h2 className="text-xl font-bold text-white font-display mb-2">
-                        Check your email
+                        {mode === 'email' ? 'Check your email' : 'Check your phone'}
                       </h2>
                       <p className="text-sm text-[var(--fog)]">
-                        We sent a 6-digit code to <span className="text-white font-medium">{email}</span>
+                        We sent a 6-digit code to{' '}
+                        <span className="text-white font-medium">{displayIdentifier}</span>
                       </p>
                     </div>
 

@@ -1,8 +1,9 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
-  id: text('id').primaryKey(), // email as ID
-  email: text('email').notNull().unique(),
+  id: text('id').primaryKey(), // email or phone as ID
+  email: text('email'),
+  phone: text('phone'),
   name: text('name').notNull().default(''),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

@@ -11,27 +11,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       credentials: {
         email: { type: "email" },
+        phone: { type: "text" },
         code: { type: "text" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string;
+        const email = credentials?.email as string | undefined;
+        const phone = credentials?.phone as string | undefined;
         const code = credentials?.code as string;
-
-        if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          return null;
-        }
 
         if (!code || typeof code !== 'string' || !/^\d{6}$/.test(code)) {
           return null;
         }
 
-        const isValid = await verifyOtp(email, code);
+        // Determine the identifier (email or phone)
+        let identifier: string | null = null;
+
+        if (email && typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          identifier = email;
+        } else if (phone && typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone)) {
+          identifier = phone;
+        }
+
+        if (!identifier) return null;
+
+        const isValid = await verifyOtp(identifier, code);
         if (!isValid) return null;
 
+        const isPhone = identifier.startsWith('+');
+        const displayName = isPhone ? identifier : identifier.split("@")[0];
+
         return {
-          id: email,
-          email,
-          name: email.split("@")[0],
+          id: identifier,
+          email: isPhone ? undefined : identifier,
+          name: displayName,
         };
       },
     }),
@@ -41,13 +53,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.email = user.email;
+        token.email = user.email || undefined;
+        // For phone users, name contains the phone number (starts with +)
+        token.name = user.name || undefined;
       }
       return token;
     },
     session({ session, token }) {
-      if (token.email && session.user) {
-        session.user.email = token.email as string;
+      if (session.user) {
+        if (token.email) {
+          session.user.email = token.email as string;
+        }
+        if (token.name) {
+          session.user.name = token.name as string;
+        }
       }
       return session;
     },

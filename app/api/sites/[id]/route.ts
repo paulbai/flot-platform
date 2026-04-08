@@ -5,17 +5,26 @@ import { sites } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { SiteConfig } from '@/lib/types/customization';
 
+/** Extract the authenticated user's identifier (email or phone) */
+function getUserId(reqAuth: { user?: { email?: string | null; name?: string | null } } | null | undefined): string | null {
+  if (!reqAuth?.user) return null;
+  if (reqAuth.user.email) return reqAuth.user.email;
+  const name = reqAuth.user.name;
+  if (name && name.startsWith('+')) return name;
+  return null;
+}
+
 // GET /api/sites/[id]
 export const GET = auth(async (req, { params }: { params: Promise<{ id: string }> }) => {
-  if (!req.auth?.user?.email) {
+  const userId = getUserId(req.auth);
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id } = await params;
-  const email = req.auth.user.email;
 
   const rows = await db.select().from(sites)
-    .where(and(eq(sites.id, id), eq(sites.ownerEmail, email)));
+    .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   if (rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -36,17 +45,17 @@ export const GET = auth(async (req, { params }: { params: Promise<{ id: string }
 
 // PATCH /api/sites/[id] — partial update
 export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string }> }) => {
-  if (!req.auth?.user?.email) {
+  const userId = getUserId(req.auth);
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id } = await params;
-  const email = req.auth.user.email;
   const updates = await req.json();
 
   // Verify ownership
   const rows = await db.select().from(sites)
-    .where(and(eq(sites.id, id), eq(sites.ownerEmail, email)));
+    .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   if (rows.length === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -74,15 +83,15 @@ export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string
 
 // DELETE /api/sites/[id]
 export const DELETE = auth(async (req, { params }: { params: Promise<{ id: string }> }) => {
-  if (!req.auth?.user?.email) {
+  const userId = getUserId(req.auth);
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id } = await params;
-  const email = req.auth.user.email;
 
   await db.delete(sites)
-    .where(and(eq(sites.id, id), eq(sites.ownerEmail, email)));
+    .where(and(eq(sites.id, id), eq(sites.ownerEmail, userId)));
 
   return NextResponse.json({ success: true });
 }) as unknown as (req: Request, ctx: { params: Promise<{ id: string }> }) => Promise<Response>;
