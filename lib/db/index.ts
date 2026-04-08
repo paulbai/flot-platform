@@ -14,11 +14,17 @@ export function db() {
     if (!raw) {
       throw new Error('Missing required environment variable: TURSO_DATABASE_URL');
     }
-    const client = createClient({
-      url: raw.replace(/^libsql:\/\//, 'https://'),
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    });
-    _db = drizzle(client, { schema });
+    const url = raw.replace(/^libsql:\/\//, 'https://');
+    console.log('[db] raw:', raw.slice(0, 20), '→ url:', url.slice(0, 20));
+    try {
+      const client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+      console.log('[db] createClient OK');
+      _db = drizzle(client, { schema });
+      console.log('[db] drizzle OK');
+    } catch (e) {
+      console.error('[db] init error:', e instanceof Error ? e.message : e);
+      throw e;
+    }
   }
   return _db;
 }
