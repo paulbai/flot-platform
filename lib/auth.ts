@@ -1,6 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { verifyOtp } from "./otp";
+
+// ─── BETA MODE ───────────────────────────────────────────────
+// OTP verification uses hardcoded 000000.
+// TODO: Re-enable verifyOtp() once domain is verified on Resend.
+// ─────────────────────────────────────────────────────────────
+
+const BETA_OTP = '000000';
 
 if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
   throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
@@ -34,8 +40,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!identifier) return null;
 
-        const isValid = await verifyOtp(identifier, code);
-        if (!isValid) return null;
+        // Beta: accept hardcoded OTP 000000
+        if (code !== BETA_OTP) return null;
 
         const isPhone = identifier.startsWith('+');
         const displayName = isPhone ? identifier : identifier.split("@")[0];
