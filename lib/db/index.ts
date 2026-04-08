@@ -14,7 +14,7 @@ export function db() {
       throw new Error('Missing required environment variable: TURSO_DATABASE_URL');
     }
     const client = createClient({
-      url: process.env.TURSO_DATABASE_URL,
+      url: process.env.TURSO_DATABASE_URL.replace('libsql://', 'https://'),
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
     _db = drizzle(client, { schema });
