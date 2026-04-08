@@ -1,11 +1,10 @@
 import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/web';
 import * as schema from './schema';
 
 /**
  * Lazy-initialised database singleton.
- * Deferred so that `next build` doesn't crash when TURSO_DATABASE_URL
- * is absent from the build environment (standard on Vercel).
+ * Uses @libsql/client/web for Vercel serverless compatibility.
  */
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
@@ -23,20 +22,14 @@ export function getDb() {
   return _db;
 }
 
-/**
- * Proxy-backed `db` export so consumers can write `db.select()…` directly.
- * The real Drizzle instance is created on first property access, not at import time.
- */
-type DbType = ReturnType<typeof getDb>;
-
-export const db: DbType = new Proxy({} as DbType, {
+// Re-export as `db` for convenience
+export const db = new Proxy({} as ReturnType<typeof getDb>, {
   get(_target, prop) {
     const instance = getDb();
-    const value = Reflect.get(instance, prop, instance);
-    // Bind methods to the real instance so `this` context is correct
-    if (typeof value === 'function') {
-      return value.bind(instance);
+    const val = (instance as Record<string | symbol, unknown>)[prop];
+    if (typeof val === 'function') {
+      return (val as Function).bind(instance);
     }
-    return value;
+    return val;
   },
 });
