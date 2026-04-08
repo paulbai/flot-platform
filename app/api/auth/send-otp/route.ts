@@ -58,7 +58,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, channel });
-  } catch {
+  } catch (err) {
+    console.error('[send-otp] Error:', err);
     return NextResponse.json(
       { error: 'Failed to send verification code' },
       { status: 500 }
