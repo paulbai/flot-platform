@@ -1,43 +1,54 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useSiteBuilderStore } from '@/store/siteBuilderStore';
+import { useState, useEffect } from 'react';
 import SiteRenderer from '@/components/site/SiteRenderer';
+import type { SiteConfig } from '@/lib/types/customization';
 
 export default function PublishedSitePage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const [hydrated, setHydrated] = useState(false);
-
-  // Wait for Zustand to hydrate from localStorage before rendering
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  const site = useSiteBuilderStore((s) => s.getSiteBySlug(slug));
+  const [site, setSite] = useState<SiteConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (hydrated && site?.seo?.metaTitle) {
+    if (!slug) return;
+    fetch(`/api/sites/public/${slug}`)
+      .then((res) => {
+        if (!res.ok) {
+          setNotFound(true);
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setSite(data);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  useEffect(() => {
+    if (site?.seo?.metaTitle) {
       document.title = site.seo.metaTitle;
     }
-  }, [hydrated, site?.seo?.metaTitle]);
+  }, [site?.seo?.metaTitle]);
 
-  // Show loading skeleton until store hydrates
-  if (!hydrated) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!site || site.status !== 'published') {
+  if (notFound || !site) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-center">
-          <h1 className="text-5xl font-bold mb-3">404</h1>
-          <p className="text-[#888] text-sm">Site not found or not yet published.</p>
+          <h1 className="text-4xl font-bold text-white mb-4">404</h1>
+          <p className="text-gray-400">This site does not exist or is not published.</p>
           <a
             href="/builder"
             className="inline-block mt-6 text-xs text-white/60 hover:text-white transition-colors underline underline-offset-4"
