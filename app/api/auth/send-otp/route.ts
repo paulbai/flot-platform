@@ -65,11 +65,9 @@ export async function POST(request: Request) {
   } catch (err) {
     const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
     console.error('[send-otp] FAILED:', msg);
-    if (err instanceof Error && err.stack) {
-      console.error('[send-otp] Stack:', err.stack.split('\n').slice(0, 5).join(' | '));
-    }
+    // Temporarily expose error detail for debugging
     return NextResponse.json(
-      { error: 'Failed to send verification code' },
+      { error: 'Failed to send verification code', debug: msg },
       { status: 500 }
     );
   }
