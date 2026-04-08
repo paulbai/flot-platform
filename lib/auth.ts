@@ -2,6 +2,10 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { verifyOtp } from "./otp";
 
+if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+  throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({

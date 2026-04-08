@@ -54,7 +54,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
           return (
             <a
               key={key}
-              href={value}
+              href={sanitizeHref(value)}
               target="_blank"
               rel="noopener noreferrer"
               className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-80 ${iconBoxClass}`}

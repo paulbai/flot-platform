@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
-import { sanitizeMapSrc } from '@/lib/sanitize';
+import { sanitizeMapSrc, sanitizeHref } from '@/lib/sanitize';
 import {
   getSectionPadding,
   getBorderRadius,
@@ -262,7 +262,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
               return (
                 <a
                   key={key}
-                  href={value}
+                  href={sanitizeHref(value)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80"
@@ -291,7 +291,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
           return (
             <a
               key={key}
-              href={value}
+              href={sanitizeHref(value)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
@@ -632,7 +632,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                           return (
                             <a
                               key={key}
-                              href={value}
+                              href={sanitizeHref(value)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80"
