@@ -8,9 +8,10 @@ const PHONE_RE = /^\+[1-9]\d{6,14}$/;
 
 export async function POST(request: Request) {
   try {
+    console.log('[send-otp] Step 1: cleanupExpired');
     await cleanupExpired();
 
-    // Rate limit by IP
+    console.log('[send-otp] Step 2: rate limit IP');
     const forwarded = request.headers.get('x-forwarded-for');
     const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
 
@@ -21,10 +22,10 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('[send-otp] Step 3: parse body');
     const body = await request.json();
     const { email, phone } = body as { email?: string; phone?: string };
 
-    // Determine channel: email or phone
     let identifier: string;
     let channel: 'email' | 'sms';
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Rate limit by identifier
+    console.log('[send-otp] Step 4: rate limit identifier', channel);
     if (await isRateLimited(`${channel}:${identifier}`)) {
       return NextResponse.json(
         { error: `Too many requests. Please wait a minute.` },
@@ -49,17 +50,24 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('[send-otp] Step 5: generateOtp');
     const code = await generateOtp(identifier);
 
+    console.log('[send-otp] Step 6: send via', channel);
     if (channel === 'email') {
       await sendOtpEmail(identifier, code);
     } else {
       await sendOtpSms(identifier, code);
     }
 
+    console.log('[send-otp] Step 7: success');
     return NextResponse.json({ success: true, channel });
   } catch (err) {
-    console.error('[send-otp] Error:', err);
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error('[send-otp] FAILED:', msg);
+    if (err instanceof Error && err.stack) {
+      console.error('[send-otp] Stack:', err.stack.split('\n').slice(0, 5).join(' | '));
+    }
     return NextResponse.json(
       { error: 'Failed to send verification code' },
       { status: 500 }
