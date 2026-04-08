@@ -25,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const isValid = verifyOtp(email, code);
+        const isValid = await verifyOtp(email, code);
         if (!isValid) return null;
 
         return {
