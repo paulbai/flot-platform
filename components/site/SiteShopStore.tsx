@@ -6,6 +6,7 @@ import { ShoppingCart, X } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
 import type { Product } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 export default function SiteShopStore({ config }: { config: SiteConfig }) {
   const products = config.storeContent?.products ?? [];
@@ -14,6 +15,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const addItem = useCartStore((s) => s.addItem);
+  const rb = resolveBrand(config.brand);
   const accent = config.brand.accentColor;
 
   if (products.length === 0) return null;
@@ -63,7 +65,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
             onClick={() => setActiveCategory('all')}
             className="px-5 py-2 rounded-full text-sm font-medium transition-all"
             style={{
-              backgroundColor: activeCategory === 'all' ? accent : 'rgba(255,255,255,0.08)',
+              backgroundColor: activeCategory === 'all' ? accent : rb.cardColor,
               color: activeCategory === 'all' ? '#fff' : 'inherit',
             }}
           >
@@ -75,7 +77,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
               onClick={() => setActiveCategory(cat)}
               className="px-5 py-2 rounded-full text-sm font-medium transition-all"
               style={{
-                backgroundColor: activeCategory === cat ? accent : 'rgba(255,255,255,0.08)',
+                backgroundColor: activeCategory === cat ? accent : rb.cardColor,
                 color: activeCategory === cat ? '#fff' : 'inherit',
               }}
             >
@@ -92,8 +94,8 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="group rounded-xl overflow-hidden border border-white/10 cursor-pointer transition-all hover:border-white/20"
-              style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+              className="group rounded-xl overflow-hidden border cursor-pointer transition-all"
+              style={{ backgroundColor: rb.cardColor, borderColor: rb.borderColor }}
               onClick={() => {
                 setSelectedProduct(product);
                 setSelectedSize(product.sizes?.[0] ?? null);
@@ -146,7 +148,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg rounded-2xl overflow-hidden"
-              style={{ backgroundColor: config.brand.backgroundColor, border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ backgroundColor: config.brand.backgroundColor, border: `1px solid ${rb.borderColor}` }}
             >
               {selectedProduct.images?.[0] && (
                 <div className="relative aspect-[4/3]">
@@ -193,7 +195,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
                           onClick={() => setSelectedSize(size)}
                           className="px-4 py-2 rounded-lg text-sm font-medium border transition-all"
                           style={{
-                            borderColor: selectedSize === size ? accent : 'rgba(255,255,255,0.2)',
+                            borderColor: selectedSize === size ? accent : rb.borderColor,
                             backgroundColor: selectedSize === size ? accent + '20' : 'transparent',
                             color: selectedSize === size ? accent : 'inherit',
                           }}

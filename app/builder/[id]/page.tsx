@@ -558,6 +558,15 @@ export default function SiteEditorPage() {
             <ColorPicker label="Background Color" value={site.brand.backgroundColor} onChange={(v) => b('backgroundColor', v)} />
             <ColorPicker label="Text Color" value={site.brand.textColor} onChange={(v) => b('textColor', v)} />
 
+            {/* Extended palette */}
+            <div className="pt-2 border-t border-[#1a1a1a]">
+              <p className="text-[10px] text-[#555] uppercase tracking-widest mb-3 mt-2">Surface Colors</p>
+            </div>
+            <ColorPicker label="Navbar" value={site.brand.navColor || ''} onChange={(v) => b('navColor', v)} placeholder="Auto" />
+            <ColorPicker label="Card / Surface" value={site.brand.cardColor || ''} onChange={(v) => b('cardColor', v)} placeholder="Auto" />
+            <ColorPicker label="Footer" value={site.brand.footerColor || ''} onChange={(v) => b('footerColor', v)} placeholder="Auto" />
+            <ColorPicker label="Borders" value={site.brand.borderColor || ''} onChange={(v) => b('borderColor', v)} placeholder="Auto" />
+
             {/* Font Selection */}
             <div className="pt-2 border-t border-[#1a1a1a]">
               <p className="text-[10px] text-[#555] uppercase tracking-widest mb-3 mt-2">Typography</p>

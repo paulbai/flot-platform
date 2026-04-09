@@ -24,6 +24,7 @@ import {
   getCardStyles,
   getSectionVariants,
 } from '@/lib/templates/animations';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 const socialIcons: Record<string, LucideIcon> = {
   instagram: Camera,
@@ -36,6 +37,7 @@ const socialIcons: Record<string, LucideIcon> = {
 
 export default function SiteContact({ config }: { config: SiteConfig }) {
   const { brand, contact, businessInfo, social } = config;
+  const rb = resolveBrand(brand);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const template = useContext(TemplateContext);
 
@@ -360,7 +362,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                   className={`w-full border bg-transparent px-4 py-2.5 text-sm outline-none transition-all ${borderRadius}`}
                   style={
                     {
-                      borderColor: `color-mix(in srgb, ${brand.textColor} 20%, transparent)`,
+                      borderColor: rb.borderColor,
                       '--tw-ring-color': brand.accentColor,
                       color: brand.textColor,
                     } as React.CSSProperties
@@ -369,7 +371,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                     (e.target.style.borderColor = brand.accentColor)
                   }
                   onBlur={(e) =>
-                    (e.target.style.borderColor = `color-mix(in srgb, ${brand.textColor} 20%, transparent)`)
+                    (e.target.style.borderColor = rb.borderColor)
                   }
                 />
               ) : (
@@ -393,7 +395,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                   className={`w-full border bg-transparent px-4 py-2.5 text-sm outline-none transition-all ${borderRadius}`}
                   style={
                     {
-                      borderColor: `color-mix(in srgb, ${brand.textColor} 20%, transparent)`,
+                      borderColor: rb.borderColor,
                       '--tw-ring-color': brand.accentColor,
                       color: brand.textColor,
                     } as React.CSSProperties
@@ -402,7 +404,7 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                     (e.target.style.borderColor = brand.accentColor)
                   }
                   onBlur={(e) =>
-                    (e.target.style.borderColor = `color-mix(in srgb, ${brand.textColor} 20%, transparent)`)
+                    (e.target.style.borderColor = rb.borderColor)
                   }
                 />
               )}
@@ -588,9 +590,9 @@ export default function SiteContact({ config }: { config: SiteConfig }) {
                 viewport={{ once: true, margin: '-100px' }}
                 className={`site-card w-full max-w-md p-6 sm:p-8 ${borderRadius}`}
                 style={{
-                  backgroundColor: `color-mix(in srgb, ${brand.backgroundColor} 85%, transparent)`,
+                  backgroundColor: rb.cardColor,
                   backdropFilter: 'blur(16px)',
-                  border: `1px solid color-mix(in srgb, ${brand.accentColor} 20%, transparent)`,
+                  border: `1px solid ${rb.borderColor}`,
                   boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
                 }}
               >

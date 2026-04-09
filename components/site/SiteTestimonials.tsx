@@ -14,6 +14,7 @@ import {
   getSectionVariants,
   getItemDelay,
 } from '@/lib/templates/animations';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 function getInitials(name: string) {
   return name
@@ -140,7 +141,7 @@ function CardsLayout({
         const baseClassName = `site-card ${borderRadius} border p-6 sm:p-8 ${useFloat ? 'animate-float' : ''}`;
         const baseStyle = {
           ...cardStyle,
-          borderColor: `color-mix(in srgb, ${brand.accentColor} 25%, transparent)`,
+          borderColor: resolveBrand(brand).borderColor,
         };
         const delay = getItemDelay(template.animationPreset, idx);
 
@@ -376,7 +377,7 @@ function MinimalInlineLayout({
 
   return (
     <div className="mx-auto max-w-3xl divide-y" style={{
-      borderColor: `color-mix(in srgb, ${brand.textColor} 15%, transparent)`,
+      borderColor: resolveBrand(brand).borderColor,
     }}>
       {(items ?? []).map((item, idx) => (
         <motion.div

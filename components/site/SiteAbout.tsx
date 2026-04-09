@@ -45,6 +45,7 @@ import {
   getSectionPadding,
   getCardStyles,
 } from '@/lib/templates/animations';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 const iconMap: Record<string, LucideIcon> = {
   Sparkles,
@@ -164,6 +165,7 @@ function FlipCard({
 
 export default function SiteAbout({ config }: { config: SiteConfig }) {
   const { brand, about } = config;
+  const rb = resolveBrand(brand);
   const template = useContext(TemplateContext);
 
   if (!about.enabled) return null;
@@ -303,8 +305,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[180px]"
                     >
                       <FlipCard
-                        className={`site-card ${borderRadius} border border-white/10 min-h-[180px]`}
-                        style={cardStyle}
+                        className={`site-card ${borderRadius} border min-h-[180px]`}
+                        style={{ ...cardStyle, borderColor: rb.borderColor }}
                         front={
                           <>
                             <div
@@ -373,7 +375,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                     {wrapCard(
                       cardContent,
                       idx,
-                      'border border-white/10 p-6 transition-shadow hover:shadow-lg',
+                      'border p-6 transition-shadow hover:shadow-lg',
+                    { borderColor: rb.borderColor },
                     )}
                   </motion.div>
                 );
@@ -462,7 +465,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                         {wrapCard(
                           cardContent,
                           idx,
-                          'border border-white/10 p-6 transition-shadow hover:shadow-lg',
+                          'border p-6 transition-shadow hover:shadow-lg',
+                    { borderColor: rb.borderColor },
                         )}
                       </div>
                     </motion.div>
@@ -504,8 +508,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[220px]"
                     >
                       <FlipCard
-                        className={`site-card ${borderRadius} border border-white/10 min-h-[220px]`}
-                        style={cardStyle}
+                        className={`site-card ${borderRadius} border min-h-[220px]`}
+                        style={{ ...cardStyle, borderColor: rb.borderColor }}
                         front={
                           <>
                             <div
@@ -574,7 +578,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                     {wrapCard(
                       cardContent,
                       idx,
-                      'border border-white/10 p-8 transition-shadow hover:shadow-lg',
+                      'border p-8 transition-shadow hover:shadow-lg',
+                    { borderColor: rb.borderColor },
                     )}
                   </motion.div>
                 );
@@ -682,8 +687,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                       className="min-h-[180px]"
                     >
                       <FlipCard
-                        className={`site-card ${borderRadius} border border-white/10 min-h-[180px]`}
-                        style={cardStyle}
+                        className={`site-card ${borderRadius} border min-h-[180px]`}
+                        style={{ ...cardStyle, borderColor: rb.borderColor }}
                         front={
                           <>
                             <div
@@ -752,7 +757,8 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                     {wrapCard(
                       cardContent,
                       idx,
-                      'border border-white/10 p-6 transition-shadow hover:shadow-lg',
+                      'border p-6 transition-shadow hover:shadow-lg',
+                    { borderColor: rb.borderColor },
                     )}
                   </motion.div>
                 );

@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
 import { sanitizeHref } from '@/lib/sanitize';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 export default function SiteNavbar({ config }: { config: SiteConfig }) {
   const { brand, navbar } = config;
+  const rb = resolveBrand(brand);
   const template = useContext(TemplateContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,15 +24,26 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const bgClass = (() => {
+  const bgStyle = (() => {
     if (activeStyle === 'solid' || (activeStyle === 'transparent' && scrolled)) {
-      return 'bg-white/95 shadow-sm backdrop-blur-sm';
+      return { backgroundColor: rb.navColor };
     }
     if (activeStyle === 'glass' || activeStyle === 'centered' || activeStyle === 'minimal') {
-      return 'bg-white/20 backdrop-blur-xl';
+      return { backgroundColor: rb.navColor };
     }
     // transparent and not scrolled
-    return 'bg-transparent';
+    return { backgroundColor: 'transparent' };
+  })();
+
+  const bgClass = (() => {
+    if (activeStyle === 'solid' || (activeStyle === 'transparent' && scrolled)) {
+      return 'shadow-sm backdrop-blur-sm';
+    }
+    if (activeStyle === 'glass' || activeStyle === 'centered' || activeStyle === 'minimal') {
+      return 'backdrop-blur-xl';
+    }
+    // transparent and not scrolled
+    return '';
   })();
 
   const showSolidText =
@@ -95,7 +108,8 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="overflow-hidden border-t border-white/10 bg-white/95 backdrop-blur-xl md:hidden"
+          className="overflow-hidden border-t backdrop-blur-xl md:hidden"
+          style={{ backgroundColor: rb.navColor, borderColor: rb.borderColor }}
         >
           <div className="flex flex-col gap-3 px-4 py-4">
             {navbar.links.map((link) => (
@@ -134,7 +148,8 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="overflow-hidden border-t border-white/10 bg-white/95 backdrop-blur-xl"
+          className="overflow-hidden border-t backdrop-blur-xl"
+          style={{ backgroundColor: rb.navColor, borderColor: rb.borderColor }}
         >
           <div className="flex flex-col gap-3 px-4 py-4">
             {navbar.links.map((link) => (
@@ -180,6 +195,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
     return (
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${bgClass}`}
+        style={bgStyle}
       >
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           {/* Desktop: links-left | logo-center | links-right + CTA */}
@@ -225,6 +241,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
     return (
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${bgClass}`}
+        style={bgStyle}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           {logoBlock}
@@ -242,6 +259,7 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${bgClass}`}
+      style={bgStyle}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo / Brand */}

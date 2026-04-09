@@ -14,6 +14,7 @@ import {
 import type { SiteConfig } from '@/lib/types/customization';
 import { TemplateContext } from './SiteRenderer';
 import { sanitizeHref } from '@/lib/sanitize';
+import { resolveBrand } from '@/lib/brand-helpers';
 
 const socialIcons: Record<string, LucideIcon> = {
   instagram: Camera,
@@ -30,18 +31,18 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
   const template = useContext(TemplateContext);
   const [email, setEmail] = useState('');
 
+  const rb = resolveBrand(brand);
+
   const activeSocials = Object.entries(social ?? {}).filter(
     ([key, value]) =>
       value && key !== 'website' && key !== 'tripadvisor' && socialIcons[key]
   );
 
-  const footerBg = brand.backgroundColor
-    ? `color-mix(in srgb, ${brand.backgroundColor} 85%, black)`
-    : '#111';
+  const footerBg = rb.footerColor;
 
   const layout = template.footerLayout ?? 'standard';
 
-  const borderColor = `color-mix(in srgb, ${brand.accentColor} 20%, transparent)`;
+  const borderColor = rb.borderColor;
   const inputBorderColor = `color-mix(in srgb, ${brand.textColor} 20%, transparent)`;
 
   // ── Shared sub-components ──────────────────────────────────────────

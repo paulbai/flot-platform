@@ -127,6 +127,11 @@ export interface BrandConfig {
   textColor: string;
   headingFont: string;
   bodyFont: string;
+  // Extended palette — optional for backward compat, components use helpers
+  navColor?: string;       // Navbar background
+  cardColor?: string;      // Cards, modals, elevated surfaces
+  footerColor?: string;    // Footer background
+  borderColor?: string;    // Borders, dividers, outlines
 }
 
 /* ── Per-vertical content configs ── */
