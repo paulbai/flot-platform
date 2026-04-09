@@ -1,12 +1,13 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { verifyOtp } from "./otp";
 
-// ─── BETA MODE ───────────────────────────────────────────────
-// OTP verification uses hardcoded 000000.
-// TODO: Re-enable verifyOtp() once domain is verified on Resend.
+// ─── HYBRID MODE ─────────────────────────────────────────────
+// SMS: real OTP verification via database
+// Email: beta mode — accepts 000000 until Resend domain verified
 // ─────────────────────────────────────────────────────────────
 
-const BETA_OTP = '000000';
+const BETA_EMAIL_OTP = '000000';
 
 if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
   throw new Error('AUTH_SECRET or NEXTAUTH_SECRET environment variable is required');
@@ -31,19 +32,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Determine the identifier (email or phone)
         let identifier: string | null = null;
+        let isPhone = false;
 
-        if (email && typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          identifier = email;
-        } else if (phone && typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone)) {
+        if (phone && typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone)) {
           identifier = phone;
+          isPhone = true;
+        } else if (email && typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          identifier = email;
         }
 
         if (!identifier) return null;
 
-        // Beta: accept hardcoded OTP 000000
-        if (code !== BETA_OTP) return null;
+        if (isPhone) {
+          // Real OTP verification for phone sign-ins
+          const isValid = await verifyOtp(identifier, code);
+          if (!isValid) return null;
+        } else {
+          // Email: beta mode — accept hardcoded 000000
+          if (code !== BETA_EMAIL_OTP) return null;
+        }
 
-        const isPhone = identifier.startsWith('+');
         const displayName = isPhone ? identifier : identifier.split("@")[0];
 
         return {
