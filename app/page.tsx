@@ -363,7 +363,7 @@ export default function Home() {
                 </Link>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/build/checkout-preview`);
+                    navigator.clipboard.writeText(`${window.location.origin}/checkout-preview`);
                   }}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold border border-[var(--ash)] text-[var(--cloud)] hover:text-white hover:border-[var(--fog)] transition-colors"
                 >

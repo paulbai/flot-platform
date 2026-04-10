@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export default auth((req) => {
   if (!req.auth && req.nextUrl.pathname.startsWith('/builder')) {
-    const signInUrl = new URL('/build', req.nextUrl.origin);
+    const signInUrl = new URL('/', req.nextUrl.origin);
     return NextResponse.redirect(signInUrl);
   }
   return NextResponse.next();

@@ -48,9 +48,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  basePath: '/build/api/auth',
   session: { strategy: "jwt" },
-  pages: { signIn: "/build" },
+  pages: { signIn: "/" },
   callbacks: {
     jwt({ token, user }) {
       if (user) {

@@ -47,7 +47,7 @@ export default function BuilderLayout({ children }: { children: React.ReactNode 
         <div className="ml-auto flex items-center gap-4">
           <span className="text-xs text-[#888]">{session.user?.email}</span>
           <button
-            onClick={() => signOut({ callbackUrl: '/build' })}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="flex items-center gap-1.5 text-xs text-[#888] hover:text-white transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />

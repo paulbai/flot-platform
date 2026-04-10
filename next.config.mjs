@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/build',
   images: {
     remotePatterns: [
       {
@@ -8,6 +7,23 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/build',
+        permanent: false,
+      },
+    ];
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: '/build', destination: '/' },
+        { source: '/build/:path*', destination: '/:path*' },
+      ],
+    };
   },
   async headers() {
     return [
