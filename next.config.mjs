@@ -8,15 +8,6 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/build',
-        permanent: false,
-      },
-    ];
-  },
   async rewrites() {
     return {
       beforeFiles: [
