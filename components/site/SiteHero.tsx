@@ -71,13 +71,15 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
   const Headline = ({
     color,
     className: extra,
+    sizes,
   }: {
     color?: string;
     className?: string;
+    sizes?: string;
   }) =>
     hero.headline ? (
       <motion.h1
-        className={`max-w-4xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl ${extra ?? ''}`}
+        className={`max-w-full font-bold leading-tight tracking-tight ${sizes ?? 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'} ${extra ?? ''}`}
         style={{
           color: color ?? textColor,
           fontFamily: 'var(--heading-font)',
@@ -177,10 +179,10 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       >
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-32 sm:px-6 md:grid-cols-2 lg:px-8">
           {/* Text column */}
-          <div className={`flex flex-col justify-center ${alignClass}`}>
+          <div className={`flex flex-col justify-center min-w-0 ${alignClass}`}>
             <Logo />
             <Subline />
-            <Headline color={brand.textColor} />
+            <Headline color={brand.textColor} sizes="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" />
             <Description color={brand.textColor} />
             <CTAs textColorOverride={brand.textColor} />
           </div>
