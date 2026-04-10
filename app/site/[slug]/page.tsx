@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import SiteRenderer from '@/components/site/SiteRenderer';
 import type { SiteConfig } from '@/lib/types/customization';
 
@@ -49,12 +50,12 @@ export default function PublishedSitePage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">404</h1>
           <p className="text-gray-400">This site does not exist or is not published.</p>
-          <a
+          <Link
             href="/builder"
             className="inline-block mt-6 text-xs text-white/60 hover:text-white transition-colors underline underline-offset-4"
           >
             Go to Builder
-          </a>
+          </Link>
         </div>
       </div>
     );

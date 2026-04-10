@@ -192,7 +192,7 @@ export default function NavBar() {
               // Navigate to appropriate checkout based on items
               const verticals = useCartStore.getState().getVerticals();
               if (verticals.length === 1) {
-                window.location.href = `/${verticals[0]}/checkout`;
+                window.location.href = `/build/${verticals[0]}/checkout`;
               }
             }}
           />
