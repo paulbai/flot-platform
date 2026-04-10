@@ -14,7 +14,7 @@ export default function PublishedSitePage() {
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`/api/sites/public/${slug}`)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/sites/public/${slug}`)
       .then((res) => {
         if (!res.ok) {
           setNotFound(true);

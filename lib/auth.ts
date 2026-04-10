@@ -48,6 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  basePath: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/auth`,
   session: { strategy: "jwt" },
   pages: { signIn: "/" },
   callbacks: {
