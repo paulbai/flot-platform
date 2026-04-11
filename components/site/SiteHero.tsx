@@ -72,17 +72,20 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
     color,
     className: extra,
     sizes,
+    fitContainer,
   }: {
     color?: string;
     className?: string;
     sizes?: string;
+    fitContainer?: boolean;
   }) =>
     hero.headline ? (
       <motion.h1
-        className={`max-w-full font-bold leading-tight tracking-tight ${sizes ?? 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'} ${extra ?? ''}`}
+        className={`max-w-full font-bold leading-tight tracking-tight ${!fitContainer ? (sizes ?? 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl') : ''} ${extra ?? ''}`}
         style={{
           color: color ?? textColor,
           fontFamily: 'var(--heading-font)',
+          ...(fitContainer ? { fontSize: 'clamp(1.75rem, 4vw, 3.75rem)' } : {}),
         }}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -179,10 +182,10 @@ export default function SiteHero({ config }: { config: SiteConfig }) {
       >
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-32 sm:px-6 md:grid-cols-2 lg:px-8">
           {/* Text column */}
-          <div className={`flex flex-col justify-center min-w-0 ${alignClass}`}>
+          <div className={`flex flex-col justify-center min-w-0 overflow-hidden ${alignClass}`}>
             <Logo />
             <Subline />
-            <Headline color={brand.textColor} sizes="text-3xl sm:text-4xl md:text-5xl lg:text-6xl" />
+            <Headline color={brand.textColor} fitContainer />
             <Description color={brand.textColor} />
             <CTAs textColorOverride={brand.textColor} />
           </div>
