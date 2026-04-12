@@ -31,7 +31,6 @@ export async function logMerchantPublish(config: SiteConfig, ownerIdentifier: st
 
     const businessName = brand?.businessName || '—';
     const templateId   = config.templateId || '—';
-    const vertical     = config.vertical || '—';
     const siteUrl      = `https://flot-platform.vercel.app/site/${config.slug}`;
     const ownerEmail   = ownerIdentifier.includes('@') ? ownerIdentifier : '—';
     const ownerPhone   = ownerIdentifier.startsWith('+') ? ownerIdentifier : (contact?.phone || '—');
@@ -40,20 +39,18 @@ export async function logMerchantPublish(config: SiteConfig, ownerIdentifier: st
     const publishedAt  = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Freetown' });
 
     const row = [
-      publishedAt,
-      businessName,
-      contactEmail,
-      ownerPhone,
-      address,
-      vertical,
-      templateId,
-      siteUrl,
-      config.slug,
+      businessName,   // A: Business Name
+      contactEmail,   // B: Email
+      ownerPhone,     // C: Phone
+      address,        // D: Address
+      templateId,     // E: Template
+      siteUrl,        // F: Site URL
+      publishedAt,    // G: Published
     ];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:I`,
+      range: `${SHEET_NAME}!A:G`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
