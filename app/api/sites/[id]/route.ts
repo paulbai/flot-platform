@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { sites } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { SiteConfig } from '@/lib/types/customization';
+import { logMerchantPublish } from '@/lib/sheets';
 
 /** Extract the authenticated user's identifier (email or phone) */
 function getUserId(reqAuth: { user?: { email?: string | null; name?: string | null } } | null | undefined): string | null {
@@ -68,15 +69,23 @@ export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string
   const merged = { ...existingConfig, ...updates };
 
   // Update top-level columns if they changed
+  const newStatus = (updates.status as string) || existing.status;
+
   await db().update(sites)
     .set({
       config: merged,
       slug: (updates.slug as string) || existing.slug,
-      status: (updates.status as string) || existing.status,
+      status: newStatus,
       templateId: (updates.templateId as string) || existing.templateId,
       updatedAt: new Date(),
     })
     .where(eq(sites.id, id));
+
+  // Log to Google Sheets when a site is first published
+  if (newStatus === 'published' && existing.status !== 'published') {
+    const fullConfig = { ...merged, id, slug: (updates.slug as string) || existing.slug } as SiteConfig;
+    logMerchantPublish(fullConfig, userId).catch(() => {});
+  }
 
   return NextResponse.json({ success: true });
 }) as unknown as (req: Request, ctx: { params: Promise<{ id: string }> }) => Promise<Response>;
