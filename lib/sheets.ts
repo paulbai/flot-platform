@@ -31,7 +31,7 @@ export async function logMerchantPublish(config: SiteConfig, ownerIdentifier: st
 
     const businessName = brand?.businessName || '—';
     const templateId   = config.templateId || '—';
-    const siteUrl      = `https://${config.slug}.flotme.ai`;
+    const siteUrl      = `https://build.flotme.ai/${config.slug}`;
     const ownerEmail   = ownerIdentifier.includes('@') ? ownerIdentifier : '—';
     const ownerPhone   = ownerIdentifier.startsWith('+') ? ownerIdentifier : (contact?.phone || '—');
     const contactEmail = contact?.email || ownerEmail;
