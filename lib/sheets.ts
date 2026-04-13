@@ -31,7 +31,7 @@ export async function logMerchantPublish(config: SiteConfig, ownerIdentifier: st
 
     const businessName = brand?.businessName || '—';
     const templateId   = config.templateId || '—';
-    const siteUrl      = `https://flot-platform.vercel.app/site/${config.slug}`;
+    const siteUrl      = `https://${config.slug}.flotme.ai`;
     const ownerEmail   = ownerIdentifier.includes('@') ? ownerIdentifier : '—';
     const ownerPhone   = ownerIdentifier.startsWith('+') ? ownerIdentifier : (contact?.phone || '—');
     const contactEmail = contact?.email || ownerEmail;
