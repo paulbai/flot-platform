@@ -2,42 +2,110 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, BedDouble, Minus, Plus, CalendarCheck } from 'lucide-react';
+import { Users, BedDouble, Minus, Plus, CalendarCheck, BookMarked } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
-import type { Room } from '@/lib/types';
-import type { OrderItem } from '@/lib/types';
+import type { Room, OrderItem } from '@/lib/types';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
+import BookingChoiceModal from '@/components/booking/BookingChoiceModal';
+import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
+import PendingBookingsDrawer from '@/components/booking/PendingBookingsDrawer';
+import { useBookingStore, type CustomerDetails } from '@/store/bookingStore';
+
+type FlowStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay';
 
 export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const rooms = config.hotelContent?.rooms ?? [];
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [nights, setNights] = useState(1);
   const [guests, setGuests] = useState(1);
-  const [checkoutItem, setCheckoutItem] = useState<OrderItem | null>(null);
+  const [step, setStep] = useState<FlowStep>('idle');
+  const [activeRoom, setActiveRoom] = useState<Room | null>(null);
+  const [activeNights, setActiveNights] = useState(1);
+  const [activeGuests, setActiveGuests] = useState(1);
+  const [checkoutItems, setCheckoutItems] = useState<OrderItem[] | null>(null);
+  const [payBookingId, setPayBookingId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [reservedJustNow, setReservedJustNow] = useState<string | null>(null);
+
+  const pendingBookings = useBookingStore((s) => s.pendingBookings);
+  const addBooking = useBookingStore((s) => s.addBooking);
+  const removeBooking = useBookingStore((s) => s.removeBooking);
+
+  const sitePendingBookings = pendingBookings.filter(
+    (b) => b.orderItems[0]?.siteSlug === config.slug
+  );
+
   const accent = config.brand.accentColor;
 
   if (rooms.length === 0) return null;
 
-  function handleBookNow(room: Room) {
-    const item: OrderItem = {
-      id: `${config.slug}-room-${room.id}-${Date.now()}`,
-      name: `${room.name} (${nights} night${nights > 1 ? 's' : ''})`,
-      description: `${guests} guest${guests > 1 ? 's' : ''} · ${room.view || room.size}`,
-      quantity: 1,
-      unitPrice: room.pricePerNight * nights,
-      image: room.images?.[0],
-      vertical: 'hotel',
-      siteSlug: config.slug,
-    };
-    setCheckoutItem(item);
+  function buildOrderItems(room: Room, n: number, g: number): OrderItem[] {
+    return [
+      {
+        id: `${config.slug}-room-${room.id}-${Date.now()}`,
+        name: `${room.name} (${n} night${n > 1 ? 's' : ''})`,
+        description: `${g} guest${g > 1 ? 's' : ''} · ${room.view || room.size}`,
+        quantity: 1,
+        unitPrice: room.pricePerNight * n,
+        image: room.images?.[0],
+        vertical: 'hotel',
+        siteSlug: config.slug,
+      },
+    ];
+  }
+
+  function openChoice(room: Room) {
+    setActiveRoom(room);
+    setActiveNights(nights);
+    setActiveGuests(guests);
     setSelectedRoom(null);
+    setStep('choice');
+  }
+
+  function handleReserveOnly(customer: CustomerDetails) {
+    if (!activeRoom) return;
+    const items = buildOrderItems(activeRoom, activeNights, activeGuests);
+    addBooking({
+      roomId: activeRoom.id,
+      roomName: activeRoom.name,
+      roomImage: activeRoom.images?.[0] ?? '',
+      customer,
+      checkIn: '',
+      checkOut: '',
+      nights: activeNights,
+      guests: activeGuests,
+      total: activeRoom.pricePerNight * activeNights,
+      orderItems: items,
+    });
+    setReservedJustNow(activeRoom.name);
+    setStep('idle');
+    setActiveRoom(null);
+    setTimeout(() => setReservedJustNow(null), 4000);
+  }
+
+  function handlePayNow(_customer: CustomerDetails) {
+    if (!activeRoom) return;
+    const items = buildOrderItems(activeRoom, activeNights, activeGuests);
+    setCheckoutItems(items);
+    setPayBookingId(null);
+    setStep('idle');
+  }
+
+  function handlePayFromDrawer(orderItems: OrderItem[], bookingId: string) {
+    setCheckoutItems(orderItems);
+    setPayBookingId(bookingId);
+    setDrawerOpen(false);
   }
 
   return (
     <>
-      <section id="shop" className="py-20 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: config.brand.backgroundColor, color: config.brand.textColor }}>
+      <section
+        id="shop"
+        className="py-20 px-4 sm:px-6 lg:px-8"
+        style={{ backgroundColor: config.brand.backgroundColor, color: config.brand.textColor }}
+      >
         <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
+          <div className="text-center mb-6">
             <span
               className="text-sm font-semibold uppercase tracking-[0.25em]"
               style={{ color: accent }}
@@ -51,6 +119,41 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
               Our Rooms
             </h2>
           </div>
+
+          {/* My Reservations button */}
+          {sitePendingBookings.length > 0 && (
+            <div className="flex justify-center mb-8">
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-wider transition-colors"
+                style={{ borderColor: accent + '60', color: accent }}
+              >
+                <BookMarked size={14} />
+                My Reservations
+                <span
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                  style={{ backgroundColor: accent }}
+                >
+                  {sitePendingBookings.length}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Reserved-confirmation toast */}
+          <AnimatePresence>
+            {reservedJustNow && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6 text-center text-sm"
+                style={{ color: accent }}
+              >
+                Reserved: {reservedJustNow}. Check &quot;My Reservations&quot; to pay when ready.
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {rooms.map((room) => (
@@ -93,7 +196,9 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                       <span className="text-base font-bold" style={{ color: accent }}>
                         Le{room.pricePerNight.toLocaleString()}
                       </span>
-                      <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>${(room.pricePerNight / 24).toFixed(2)}</p>
+                      <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>
+                        ${(room.pricePerNight / 24).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm" style={{ color: config.brand.textColor, opacity: 0.7 }}>
@@ -105,7 +210,9 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                     </span>
                   </div>
                   {room.description && (
-                    <p className="text-sm mt-2 line-clamp-2" style={{ color: config.brand.textColor, opacity: 0.6 }}>{room.description}</p>
+                    <p className="text-sm mt-2 line-clamp-2" style={{ color: config.brand.textColor, opacity: 0.6 }}>
+                      {room.description}
+                    </p>
                   )}
                 </div>
 
@@ -168,10 +275,12 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                             <p className="text-lg font-bold" style={{ color: config.brand.textColor }}>
                               Le{(room.pricePerNight * nights).toLocaleString()}
                             </p>
-                            <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>${((room.pricePerNight * nights) / 24).toFixed(2)}</p>
+                            <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>
+                              ${((room.pricePerNight * nights) / 24).toFixed(2)}
+                            </p>
                           </div>
                           <button
-                            onClick={() => handleBookNow(room)}
+                            onClick={() => openChoice(room)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-transform hover:scale-105"
                             style={{ backgroundColor: accent }}
                           >
@@ -189,21 +298,82 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
         </div>
       </section>
 
-      {/* Direct checkout modal for hotel bookings */}
+      {/* Choice modal */}
       <AnimatePresence>
-        {checkoutItem && (
+        {step === 'choice' && activeRoom && (
+          <BookingChoiceModal
+            roomName={activeRoom.name}
+            total={`Le${(activeRoom.pricePerNight * activeNights).toLocaleString()}`}
+            accentColor={accent}
+            onReserveOnly={() => setStep('details-reserve')}
+            onPayNow={() => setStep('details-pay')}
+            onClose={() => {
+              setStep('idle');
+              setActiveRoom(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer details — Reserve Only */}
+      <AnimatePresence>
+        {step === 'details-reserve' && (
+          <CustomerDetailsModal
+            title="Your Details"
+            subtitle="We'll hold this room for you."
+            accentColor={accent}
+            onSubmit={handleReserveOnly}
+            onClose={() => setStep('choice')}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer details — Pay Now */}
+      <AnimatePresence>
+        {step === 'details-pay' && (
+          <CustomerDetailsModal
+            title="Your Details"
+            subtitle="Almost done — complete payment to confirm."
+            accentColor={accent}
+            onSubmit={handlePayNow}
+            onClose={() => setStep('choice')}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Pending bookings drawer */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <PendingBookingsDrawer
+            accentColor={accent}
+            brandName={config.brand.businessName}
+            onPayNow={handlePayFromDrawer}
+            onClose={() => setDrawerOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Checkout */}
+      <AnimatePresence>
+        {checkoutItems && checkoutItems.length > 0 && (
           <FlotCheckout
             brandName={config.brand.businessName}
             accentColor={accent}
-            orderSummary={[checkoutItem]}
+            orderSummary={checkoutItems}
             currency="Le"
             vertical="hotel"
-            onSuccess={() => {}}
-            onError={() => {}}
-            onClose={() => {
-              setCheckoutItem(null);
+            onSuccess={() => {
+              if (payBookingId) removeBooking(payBookingId);
+              setCheckoutItems(null);
+              setPayBookingId(null);
+              setActiveRoom(null);
               setNights(1);
               setGuests(1);
+            }}
+            onError={() => {}}
+            onClose={() => {
+              setCheckoutItems(null);
+              setPayBookingId(null);
             }}
           />
         )}

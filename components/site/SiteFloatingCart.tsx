@@ -4,11 +4,16 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
+import type { ExtraField } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
+import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
+import type { CustomerDetails } from '@/store/bookingStore';
 
 export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [customer, setCustomer] = useState<CustomerDetails | null>(null);
   const items = useCartStore((s) => s.items);
   const clearSite = useCartStore((s) => s.clearSite);
   const accent = config.brand.accentColor;
@@ -17,18 +22,49 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
   const siteTotal = useMemo(() => siteItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0), [siteItems]);
   const itemCount = useMemo(() => siteItems.reduce((sum, i) => sum + i.quantity, 0), [siteItems]);
 
-  if (itemCount === 0 && !showCheckout) return null;
+  // Restaurant takeaway / store delivery require name + phone + address before checkout.
+  const requiresDeliveryDetails = config.vertical === 'restaurant' || config.vertical === 'store';
+
+  const customerExtraFields: ExtraField[] = customer
+    ? [
+        { name: 'customerName', label: 'Name', type: 'text', required: false, placeholder: customer.name },
+        { name: 'customerPhone', label: 'Phone', type: 'text', required: false, placeholder: customer.phone },
+        {
+          name: 'deliveryAddress',
+          label: 'Delivery Address',
+          type: 'textarea',
+          required: false,
+          placeholder: customer.address,
+        },
+      ]
+    : [];
+
+  if (itemCount === 0 && !showCheckout && !detailsOpen) return null;
+
+  function handleCartClick() {
+    if (requiresDeliveryDetails) {
+      setDetailsOpen(true);
+    } else {
+      setShowCheckout(true);
+    }
+  }
+
+  function handleDetailsSubmit(details: CustomerDetails) {
+    setCustomer(details);
+    setDetailsOpen(false);
+    setShowCheckout(true);
+  }
 
   return (
     <>
       {/* Floating cart button */}
       <AnimatePresence>
-        {itemCount > 0 && !showCheckout && (
+        {itemCount > 0 && !showCheckout && !detailsOpen && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            onClick={() => setShowCheckout(true)}
+            onClick={handleCartClick}
             className="fixed bottom-6 right-4 sm:right-6 z-40 flex items-center gap-3 rounded-full px-5 sm:px-6 py-3.5 text-white shadow-2xl transition-transform hover:scale-105 safe-bottom"
             style={{ backgroundColor: accent }}
           >
@@ -48,6 +84,24 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
         )}
       </AnimatePresence>
 
+      {/* Customer details (restaurant takeaway / store delivery) */}
+      <AnimatePresence>
+        {detailsOpen && (
+          <CustomerDetailsModal
+            title={config.vertical === 'restaurant' ? 'Your Order Details' : 'Delivery Details'}
+            subtitle={
+              config.vertical === 'restaurant'
+                ? 'Tell us where to deliver your order.'
+                : 'Where should we send your order?'
+            }
+            requireAddress
+            accentColor={accent}
+            onSubmit={handleDetailsSubmit}
+            onClose={() => setDetailsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Checkout modal */}
       <AnimatePresence>
         {showCheckout && (
@@ -57,8 +111,10 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
             orderSummary={siteItems}
             currency="Le"
             vertical={config.vertical}
+            extraFields={customerExtraFields}
             onSuccess={() => {
               clearSite(config.slug);
+              setCustomer(null);
             }}
             onError={() => {}}
             onClose={() => setShowCheckout(false)}
