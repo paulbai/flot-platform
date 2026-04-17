@@ -5,11 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ArrowLeft, Minus, Plus, Check as CheckIcon } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Check as CheckIcon, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Button from '@/components/ui/Button';
+import BookingChoiceModal from '@/components/booking/BookingChoiceModal';
+import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import { useHotelData } from '@/lib/hooks/useCustomizedData';
+import { useBookingStore } from '@/store/bookingStore';
 import { leonesOf } from '@/lib/currency';
+import type { CustomerDetails } from '@/store/bookingStore';
 import type { ExtraField, OrderItem } from '@/lib/types';
 
 const FlotCheckout = dynamic(() => import('@/components/checkout/FlotCheckout'), { ssr: false });
@@ -38,17 +42,21 @@ const hotelExtraFields: ExtraField[] = [
   },
 ];
 
+type BookingStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay' | 'checkout' | 'success';
+
 export default function RoomDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { rooms, brand } = useHotelData();
   const room = rooms.find((r) => r.id === params.id);
+  const addBooking = useBookingStore((s) => s.addBooking);
 
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [nights, setNights] = useState(3);
   const [guests, setGuests] = useState(2);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [step, setStep] = useState<BookingStep>('idle');
+  const [pendingCustomer, setPendingCustomer] = useState<CustomerDetails | null>(null);
 
   const priceBreakdown = useMemo(() => {
     if (!room) return { nightly: 0, subtotal: 0, resort: 45, tax: 0, total: 0 };
@@ -77,6 +85,27 @@ export default function RoomDetailPage() {
       vertical: 'hotel',
     },
   ];
+
+  const handleReserveOnly = (customer: CustomerDetails) => {
+    addBooking({
+      roomId: room.id,
+      roomName: room.name,
+      roomImage: room.images[0],
+      customer,
+      checkIn,
+      checkOut,
+      nights,
+      guests,
+      total: priceBreakdown.total,
+      orderItems,
+    });
+    setStep('success');
+  };
+
+  const handlePayNow = (customer: CustomerDetails) => {
+    setPendingCustomer(customer);
+    setStep('checkout');
+  };
 
   return (
     <main id="main-content" className="min-h-screen" style={{ backgroundColor: brand.backgroundColor }}>
@@ -258,24 +287,93 @@ export default function RoomDetailPage() {
                 </div>
               </div>
 
-              <Button
-                variant="accent"
-                size="lg"
-                accentColor={brand.accentColor}
-                className="w-full"
-                onClick={() => setCheckoutOpen(true)}
-                disabled={!room.available}
-              >
-                Reserve Now
-              </Button>
+              {/* Success state */}
+              <AnimatePresence mode="wait">
+                {step === 'success' ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center text-center py-4"
+                  >
+                    <CheckCircle size={32} className="mb-3" style={{ color: brand.accentColor }} />
+                    <p className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium mb-1">
+                      Room Reserved!
+                    </p>
+                    <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mb-4">
+                      Your reservation is pending. Check &quot;My Reservations&quot; to pay when ready.
+                    </p>
+                    <button
+                      onClick={() => setStep('idle')}
+                      className="text-[var(--text-xs)] font-body underline underline-offset-4 cursor-pointer"
+                      style={{ color: brand.accentColor }}
+                    >
+                      Reserve Another Room
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div key="button" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <Button
+                      variant="accent"
+                      size="lg"
+                      accentColor={brand.accentColor}
+                      className="w-full"
+                      onClick={() => setStep('choice')}
+                      disabled={!room.available}
+                    >
+                      Reserve Now
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>
       </div>
 
+      {/* Booking Choice Modal */}
+      <AnimatePresence>
+        {step === 'choice' && (
+          <BookingChoiceModal
+            roomName={room.name}
+            total={`$${priceBreakdown.total.toFixed(2)}`}
+            accentColor={brand.accentColor}
+            onReserveOnly={() => setStep('details-reserve')}
+            onPayNow={() => setStep('details-pay')}
+            onClose={() => setStep('idle')}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer Details — Reserve Only */}
+      <AnimatePresence>
+        {step === 'details-reserve' && (
+          <CustomerDetailsModal
+            title="Your Details"
+            subtitle="We'll hold this room for you."
+            accentColor={brand.accentColor}
+            onSubmit={handleReserveOnly}
+            onClose={() => setStep('choice')}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer Details — Pay Now */}
+      <AnimatePresence>
+        {step === 'details-pay' && (
+          <CustomerDetailsModal
+            title="Your Details"
+            subtitle="Almost done — complete payment to confirm."
+            accentColor={brand.accentColor}
+            onSubmit={handlePayNow}
+            onClose={() => setStep('choice')}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Checkout */}
       <AnimatePresence>
-        {checkoutOpen && (
+        {step === 'checkout' && pendingCustomer && (
           <FlotCheckout
             brandName={brand.businessName}
             accentColor={brand.accentColor}
@@ -283,9 +381,9 @@ export default function RoomDetailPage() {
             currency="USD"
             vertical="hotel"
             extraFields={hotelExtraFields}
-            onSuccess={() => {}}
+            onSuccess={() => setStep('idle')}
             onError={() => {}}
-            onClose={() => setCheckoutOpen(false)}
+            onClose={() => setStep('idle')}
           />
         )}
       </AnimatePresence>

@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { ShoppingBag, Plus, Flame, Leaf, Wheat } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
+import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import { useRestaurantData } from '@/lib/hooks/useCustomizedData';
 import { useCartStore } from '@/store/cartStore';
 import { leonesOf } from '@/lib/currency';
+import type { CustomerDetails } from '@/store/bookingStore';
 import type { ExtraField } from '@/lib/types';
 
 const FlotCheckout = dynamic(() => import('@/components/checkout/FlotCheckout'), { ssr: false });
@@ -32,7 +34,9 @@ export default function RestaurantPage() {
   const { brand, heroImage, heroHeadline, heroSubline, heroDescription, categories } = useRestaurantData();
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id || '');
   const [showMenu, setShowMenu] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [customerDetails, setCustomerDetails] = useState<CustomerDetails | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const addItem = useCartStore((s) => s.addItem);
@@ -258,7 +262,7 @@ export default function RestaurantPage() {
               >
                 <div className="max-w-[900px] mx-auto">
                   <button
-                    onClick={() => setCheckoutOpen(true)}
+                    onClick={() => setDetailsOpen(true)}
                     className="w-full flex items-center justify-between px-6 py-4 rounded-sm cursor-pointer transition-transform hover:scale-[1.01]"
                     style={{ backgroundColor: brand.accentColor }}
                   >
@@ -284,6 +288,25 @@ export default function RestaurantPage() {
         </div>
       )}
 
+      {/* Customer Details Modal */}
+      <AnimatePresence>
+        {detailsOpen && (
+          <CustomerDetailsModal
+            title="Your Order Details"
+            subtitle="Tell us where to deliver your order."
+            requireAddress
+            accentColor={brand.accentColor}
+            onSubmit={(details) => {
+              setCustomerDetails(details);
+              setDetailsOpen(false);
+              setCheckoutOpen(true);
+            }}
+            onClose={() => setDetailsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Checkout */}
       <AnimatePresence>
         {checkoutOpen && cartItems.length > 0 && (
           <FlotCheckout
@@ -292,8 +315,15 @@ export default function RestaurantPage() {
             orderSummary={cartItems}
             currency="USD"
             vertical="restaurant"
-            extraFields={restaurantExtraFields}
-            onSuccess={() => {}}
+            extraFields={[
+              ...restaurantExtraFields,
+              ...(customerDetails ? [
+                { name: 'customerName', label: 'Name', type: 'text' as const, required: false, placeholder: customerDetails.name },
+                { name: 'customerPhone', label: 'Phone', type: 'text' as const, required: false, placeholder: customerDetails.phone },
+                { name: 'deliveryAddress', label: 'Delivery Address', type: 'textarea' as const, required: false, placeholder: customerDetails.address },
+              ] : []),
+            ]}
+            onSuccess={() => { setCheckoutOpen(false); setCustomerDetails(null); }}
             onError={() => {}}
             onClose={() => setCheckoutOpen(false)}
           />

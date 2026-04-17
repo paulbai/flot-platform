@@ -12,9 +12,11 @@ import Badge from '@/components/ui/Badge';
 import { useStoreData } from '@/lib/hooks/useCustomizedData';
 import { useCartStore } from '@/store/cartStore';
 import { leonesOf } from '@/lib/currency';
+import type { CustomerDetails } from '@/store/bookingStore';
 
 const CartDrawer = dynamic(() => import('@/components/cart/CartDrawer'), { ssr: false });
 const FlotCheckout = dynamic(() => import('@/components/checkout/FlotCheckout'), { ssr: false });
+const CustomerDetailsModal = dynamic(() => import('@/components/booking/CustomerDetailsModal'), { ssr: false });
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -27,7 +29,9 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [customerDetails, setCustomerDetails] = useState<CustomerDetails | null>(null);
 
   const addItem = useCartStore((s) => s.addItem);
   const cartItems = useCartStore((s) => s.items).filter((i) => i.vertical === 'store');
@@ -267,8 +271,26 @@ export default function ProductDetailPage() {
             onClose={() => setCartOpen(false)}
             onCheckout={() => {
               setCartOpen(false);
+              setDetailsOpen(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer Details Modal */}
+      <AnimatePresence>
+        {detailsOpen && (
+          <CustomerDetailsModal
+            title="Delivery Details"
+            subtitle="Where should we send your order?"
+            requireAddress
+            accentColor={brand.accentColor}
+            onSubmit={(details) => {
+              setCustomerDetails(details);
+              setDetailsOpen(false);
               setCheckoutOpen(true);
             }}
+            onClose={() => setDetailsOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -282,7 +304,12 @@ export default function ProductDetailPage() {
             orderSummary={cartItems}
             currency="USD"
             vertical="store"
-            onSuccess={() => {}}
+            extraFields={customerDetails ? [
+              { name: 'customerName', label: 'Name', type: 'text' as const, required: false, placeholder: customerDetails.name },
+              { name: 'customerPhone', label: 'Phone', type: 'text' as const, required: false, placeholder: customerDetails.phone },
+              { name: 'deliveryAddress', label: 'Delivery Address', type: 'textarea' as const, required: false, placeholder: customerDetails.address },
+            ] : []}
+            onSuccess={() => { setCheckoutOpen(false); setCustomerDetails(null); }}
             onError={() => {}}
             onClose={() => setCheckoutOpen(false)}
           />
