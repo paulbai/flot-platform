@@ -29,6 +29,13 @@ yarn-error.log*
 .env
 .env*.local
 
+# credential / API docs (never commit)
+APPHIVE*
+APPHIVESL*
+*credentials*.txt
+*credentials*.pdf
+*secrets*
+
 # vercel
 .vercel
 

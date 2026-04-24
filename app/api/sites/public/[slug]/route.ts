@@ -28,5 +28,9 @@ export async function GET(
     updatedAt: row.updatedAt.toISOString(),
   };
 
+  // Strip ownerEmail before returning — this endpoint is public and anyone can
+  // hit it by slug, so the merchant's contact email must not be harvestable.
+  config.ownerEmail = '';
+
   return NextResponse.json(config);
 }
