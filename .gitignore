@@ -39,6 +39,10 @@ APPHIVESL*
 # vercel
 .vercel
 
+# git worktrees (created by superpowers:using-git-worktrees)
+.worktrees/
+worktrees/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
