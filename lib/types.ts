@@ -95,7 +95,7 @@ export interface FlotCheckoutProps {
   currency: string;
   vertical: Vertical;
   extraFields?: ExtraField[];
-  onSuccess: (result: ChargeResult) => void;
+  onSuccess: (result: ChargeResult) => Promise<{ reference?: string } | void> | void;
   onError: (error: string) => void;
   onClose: () => void;
 }
