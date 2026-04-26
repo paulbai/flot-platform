@@ -9,7 +9,6 @@ import { Calendar, Users, Sparkles, UtensilsCrossed, Bell, BookMarked } from 'lu
 import NavBar from '@/components/layout/NavBar';
 import Badge from '@/components/ui/Badge';
 import { useHotelData } from '@/lib/hooks/useCustomizedData';
-import { useBookingStore } from '@/store/bookingStore';
 import { leonesOf } from '@/lib/currency';
 import type { OrderItem } from '@/lib/types';
 
@@ -30,14 +29,11 @@ export default function HotelPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [payItems, setPayItems] = useState<OrderItem[]>([]);
-  const [payBookingId, setPayBookingId] = useState<string | null>(null);
+  const [payDbOrderId, setPayDbOrderId] = useState<string | null>(null);
 
-  const pendingBookings = useBookingStore((s) => s.pendingBookings);
-  const removeBooking = useBookingStore((s) => s.removeBooking);
-
-  const handlePayNow = (orderItems: OrderItem[], bookingId: string) => {
-    setPayItems(orderItems);
-    setPayBookingId(bookingId);
+  const handlePayNow = (args: { orderId: string; customerEmail: string; orderItems: OrderItem[] }) => {
+    setPayItems(args.orderItems);
+    setPayDbOrderId(args.orderId);
     setDrawerOpen(false);
     setCheckoutOpen(true);
   };
@@ -66,24 +62,16 @@ export default function HotelPage() {
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           {/* My Reservations button */}
-          {pendingBookings.length > 0 && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-sm border text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider transition-colors cursor-pointer"
-                style={{ borderColor: brand.accentColor + '60', color: brand.accentColor }}
-              >
-                <BookMarked size={14} />
-                My Reservations
-                <span
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                  style={{ backgroundColor: brand.accentColor, color: brand.backgroundColor }}
-                >
-                  {pendingBookings.length}
-                </span>
-              </button>
-            </div>
-          )}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-sm border text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+              style={{ borderColor: brand.accentColor + '60', color: brand.accentColor }}
+            >
+              <BookMarked size={14} />
+              My Reservations
+            </button>
+          </div>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -260,6 +248,7 @@ export default function HotelPage() {
           <PendingBookingsDrawer
             accentColor={brand.accentColor}
             brandName={brand.businessName}
+            siteSlug="demo"
             onPayNow={handlePayNow}
             onClose={() => setDrawerOpen(false)}
           />
@@ -276,11 +265,11 @@ export default function HotelPage() {
             currency="USD"
             vertical="hotel"
             onSuccess={() => {
-              if (payBookingId) removeBooking(payBookingId);
+              setPayDbOrderId(null);
               setCheckoutOpen(false);
             }}
             onError={() => {}}
-            onClose={() => setCheckoutOpen(false)}
+            onClose={() => { setCheckoutOpen(false); setPayDbOrderId(null); }}
           />
         )}
       </AnimatePresence>

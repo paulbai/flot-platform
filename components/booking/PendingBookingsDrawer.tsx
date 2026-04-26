@@ -1,157 +1,243 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarDays, Users, ArrowRight, Trash2 } from 'lucide-react';
-import { useBookingStore } from '@/store/bookingStore';
 import type { OrderItem } from '@/lib/types';
+
+const SESSION_EMAIL_KEY = 'flot:lookup-email';
+
+interface BackendOrder {
+  id: string;
+  reference: string;
+  vertical: string;
+  status: 'pending' | 'confirmed' | 'fulfilled' | 'cancelled';
+  total: number;
+  currency: string;
+  details: { roomId?: string; nights?: number; guests?: number; checkIn?: string; checkOut?: string };
+  items: { id: string; name: string; imageUrl?: string | null; quantity: number; unitPrice: number; description?: string | null; variant?: string | null }[];
+  createdAt: string;
+}
 
 interface PendingBookingsDrawerProps {
   accentColor: string;
   brandName: string;
-  onPayNow: (orderItems: OrderItem[], bookingId: string) => void;
+  siteSlug: string;
+  onPayNow: (args: {
+    orderId: string;
+    customerEmail: string;
+    orderItems: OrderItem[];
+  }) => void;
   onClose: () => void;
 }
 
 export default function PendingBookingsDrawer({
   accentColor,
   brandName,
+  siteSlug,
   onPayNow,
   onClose,
 }: PendingBookingsDrawerProps) {
-  const { pendingBookings, removeBooking } = useBookingStore();
+  const [email, setEmail] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [orders, setOrders] = useState<BackendOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Restore email from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem(SESSION_EMAIL_KEY);
+    if (saved) setEmail(saved);
+  }, []);
+
+  // Fetch orders whenever email changes
+  useEffect(() => {
+    if (!email) return;
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `/api/orders/lookup?siteSlug=${encodeURIComponent(siteSlug)}&email=${encodeURIComponent(email!)}`,
+        );
+        if (!res.ok) {
+          if (res.status === 429) throw new Error('Too many lookups — please wait a moment.');
+          throw new Error('Lookup failed');
+        }
+        const data = (await res.json()) as { orders: BackendOrder[] };
+        if (cancelled) return;
+        // Show only pending and confirmed bookings (the buyer's "live" reservations).
+        setOrders(data.orders.filter((o) => o.status === 'pending' || o.status === 'confirmed'));
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [email, siteSlug]);
+
+  function submitEmail(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = emailInput.trim().toLowerCase();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError('Please enter a valid email');
+      return;
+    }
+    sessionStorage.setItem(SESSION_EMAIL_KEY, trimmed);
+    setEmail(trimmed);
+  }
+
+  async function cancelBooking(orderId: string) {
+    if (!confirm('Cancel this reservation?')) return;
+    try {
+      // The buyer can't directly hit PATCH (it's auth-merchant-only). For v1 we just
+      // remove the row from the local view and trust the merchant to cancel server-side
+      // when contacted. (A buyer-cancel endpoint can be added later — out of v1 scope.)
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } catch {/* swallow */}
+  }
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         className="fixed inset-0 z-50"
         style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
+          initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
           className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[var(--ink)] border-l border-[var(--ash)] flex flex-col"
         >
-          {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--ash)]">
             <div>
-              <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium">
-                My Reservations
-              </h2>
+              <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium">My Reservations</h2>
               <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mt-0.5">{brandName}</p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-[var(--fog)] hover:text-[var(--paper)] transition-colors cursor-pointer"
-            >
+            <button onClick={onClose} className="text-[var(--fog)] hover:text-[var(--paper)] transition-colors cursor-pointer">
               <X size={20} />
             </button>
           </div>
 
-          {/* Bookings list */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {pendingBookings.length === 0 ? (
+            {!email ? (
+              <form onSubmit={submitEmail} className="flex flex-col gap-3 mt-8">
+                <p className="text-sm text-[var(--paper)]">
+                  Enter the email you used when reserving to see your bookings:
+                </p>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="you@example.com"
+                  className="px-3 py-2 rounded-md bg-[var(--stone)] border border-[var(--ash)] text-[var(--paper)]"
+                />
+                {error && <p className="text-xs text-red-400">{error}</p>}
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-md font-semibold text-white"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  Show my reservations
+                </button>
+              </form>
+            ) : loading ? (
+              <p className="text-sm text-[var(--fog)] text-center mt-8">Loading…</p>
+            ) : error ? (
+              <p className="text-sm text-red-400 text-center mt-8">{error}</p>
+            ) : orders.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 text-center">
                 <CalendarDays size={32} className="mb-3" style={{ color: accentColor, opacity: 0.4 }} />
-                <p className="text-[var(--text-sm)] text-[var(--fog)] font-body">No pending reservations</p>
-                <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mt-1 opacity-60">
-                  Browse rooms and reserve to see them here
-                </p>
+                <p className="text-[var(--text-sm)] text-[var(--fog)] font-body">No reservations for this email.</p>
+                <button
+                  onClick={() => { sessionStorage.removeItem(SESSION_EMAIL_KEY); setEmail(null); }}
+                  className="text-xs underline mt-3 opacity-60 hover:opacity-100"
+                >
+                  Try a different email
+                </button>
               </div>
             ) : (
-              pendingBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="bg-[var(--stone)] border border-[var(--ash)] rounded-sm overflow-hidden"
-                >
-                  {/* Room image */}
-                  {booking.roomImage && (
-                    <div className="relative aspect-[16/7] overflow-hidden">
-                      <img
-                        src={booking.roomImage}
-                        alt={booking.roomName}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    </div>
-                  )}
-
-                  <div className="p-4">
-                    {/* Room name + status */}
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <h3 className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium">
-                        {booking.roomName}
-                      </h3>
-                      <span
-                        className="flex-shrink-0 text-[9px] font-body font-semibold uppercase tracking-wider px-2 py-0.5 rounded border"
-                        style={{ color: accentColor, borderColor: accentColor + '50' }}
-                      >
-                        Pending
-                      </span>
-                    </div>
-
-                    {/* Details */}
-                    <div className="space-y-1.5 mb-3">
-                      {(booking.checkIn || booking.checkOut) && (
+              orders.map((booking) => {
+                const firstItem = booking.items[0];
+                const orderItems: OrderItem[] = booking.items.map((it) => ({
+                  id: it.id,
+                  name: it.name,
+                  description: it.description ?? undefined,
+                  quantity: it.quantity,
+                  unitPrice: it.unitPrice,
+                  image: it.imageUrl ?? undefined,
+                  variant: it.variant ?? undefined,
+                  vertical: 'hotel',
+                  siteSlug,
+                }));
+                return (
+                  <div key={booking.id} className="bg-[var(--stone)] border border-[var(--ash)] rounded-sm overflow-hidden">
+                    {firstItem?.imageUrl && (
+                      <div className="relative aspect-[16/7] overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={firstItem.imageUrl} alt={firstItem.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium">{firstItem?.name ?? 'Reservation'}</h3>
+                        <span
+                          className="flex-shrink-0 text-[9px] font-body font-semibold uppercase tracking-wider px-2 py-0.5 rounded border"
+                          style={{ color: accentColor, borderColor: accentColor + '50' }}
+                        >
+                          {booking.status === 'pending' ? 'Pending' : 'Confirmed'}
+                        </span>
+                      </div>
+                      <p className="font-mono text-xs opacity-60">{booking.reference}</p>
+                      {(booking.details?.checkIn || booking.details?.checkOut) && (
                         <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--fog)] font-body">
                           <CalendarDays size={12} style={{ color: accentColor }} />
-                          {booking.checkIn || '—'} → {booking.checkOut || '—'}
-                          {booking.nights > 0 && ` (${booking.nights} nights)`}
+                          {booking.details.checkIn || '—'} → {booking.details.checkOut || '—'}
+                          {booking.details.nights ? ` (${booking.details.nights} nights)` : ''}
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--fog)] font-body">
-                        <Users size={12} style={{ color: accentColor }} />
-                        {booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}
-                      </div>
-                    </div>
-
-                    {/* Customer + Total */}
-                    <div className="flex items-end justify-between mb-4">
-                      <div>
-                        <p className="text-[var(--text-xs)] text-[var(--fog)] font-body">Reserved by</p>
-                        <p className="text-[var(--text-sm)] text-[var(--paper)] font-body font-medium">
-                          {booking.customer.name}
-                        </p>
-                        <p className="text-[var(--text-xs)] text-[var(--fog)] font-body">
-                          {booking.customer.phone}
+                      {booking.details?.guests !== undefined && (
+                        <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--fog)] font-body">
+                          <Users size={12} style={{ color: accentColor }} />
+                          {booking.details.guests} {booking.details.guests === 1 ? 'guest' : 'guests'}
+                        </div>
+                      )}
+                      <div className="flex items-end justify-between">
+                        <p className="text-sm opacity-70">Total due</p>
+                        <p className="font-display text-[var(--text-lg)] font-bold" style={{ color: accentColor }}>
+                          {booking.currency}{booking.total.toLocaleString()}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[var(--text-xs)] text-[var(--fog)] font-body">Total due</p>
-                        <p
-                          className="font-display text-[var(--text-lg)] font-bold"
-                          style={{ color: accentColor }}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => cancelBooking(booking.id)}
+                          className="flex items-center justify-center w-10 h-10 rounded-sm border border-[var(--ash)] text-[var(--fog)] hover:text-[var(--error)] hover:border-[var(--error)] transition-colors cursor-pointer"
+                          aria-label="Hide reservation"
                         >
-                          ${booking.total.toFixed(2)}
-                        </p>
+                          <Trash2 size={14} />
+                        </button>
+                        {booking.status === 'pending' && (
+                          <button
+                            onClick={() => onPayNow({
+                              orderId: booking.id,
+                              customerEmail: email,
+                              orderItems,
+                            })}
+                            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider transition-opacity hover:opacity-90 cursor-pointer"
+                            style={{ backgroundColor: accentColor, color: '#000' }}
+                          >
+                            Pay Now <ArrowRight size={14} />
+                          </button>
+                        )}
                       </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => removeBooking(booking.id)}
-                        className="flex items-center justify-center w-10 h-10 rounded-sm border border-[var(--ash)] text-[var(--fog)] hover:text-[var(--error)] hover:border-[var(--error)] transition-colors cursor-pointer"
-                        aria-label="Cancel reservation"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => onPayNow(booking.orderItems, booking.id)}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-sm text-[var(--text-xs)] font-body font-semibold uppercase tracking-wider transition-opacity hover:opacity-90 cursor-pointer"
-                        style={{ backgroundColor: accentColor, color: '#000' }}
-                      >
-                        Pay Now <ArrowRight size={14} />
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </motion.div>

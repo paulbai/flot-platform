@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, BedDouble, Minus, Plus, CalendarCheck, BookMarked } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
@@ -9,7 +9,7 @@ import FlotCheckout from '@/components/checkout/FlotCheckout';
 import BookingChoiceModal from '@/components/booking/BookingChoiceModal';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import PendingBookingsDrawer from '@/components/booking/PendingBookingsDrawer';
-import { useBookingStore, type CustomerDetails } from '@/store/bookingStore';
+import type { CustomerDetails } from '@/store/bookingStore';
 
 type FlowStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay';
 
@@ -23,20 +23,24 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const [activeNights, setActiveNights] = useState(1);
   const [activeGuests, setActiveGuests] = useState(1);
   const [checkoutItems, setCheckoutItems] = useState<OrderItem[] | null>(null);
-  const [payBookingId, setPayBookingId] = useState<string | null>(null);
   const [payDbOrderId, setPayDbOrderId] = useState<string | null>(null);
   const [payDbOrderEmail, setPayDbOrderEmail] = useState<string | null>(null);
   const [activeCustomer, setActiveCustomer] = useState<CustomerDetails | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [reservedJustNow, setReservedJustNow] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
-  const pendingBookings = useBookingStore((s) => s.pendingBookings);
-  const addBooking = useBookingStore((s) => s.addBooking);
-  const removeBooking = useBookingStore((s) => s.removeBooking);
-
-  const sitePendingBookings = pendingBookings.filter(
-    (b) => b.orderItems[0]?.siteSlug === config.slug
-  );
+  // Refresh the pending count from the server when the email is known.
+  useEffect(() => {
+    const email = typeof window !== 'undefined' ? sessionStorage.getItem('flot:lookup-email') : null;
+    if (!email) { setPendingCount(0); return; }
+    fetch(`/api/orders/lookup?siteSlug=${encodeURIComponent(config.slug)}&email=${encodeURIComponent(email)}`)
+      .then((r) => r.ok ? r.json() : { orders: [] })
+      .then((data: { orders: { status: string }[] }) => {
+        setPendingCount(data.orders.filter((o) => o.status === 'pending').length);
+      })
+      .catch(() => setPendingCount(0));
+  }, [config.slug, drawerOpen]);
 
   const accent = config.brand.accentColor;
 
@@ -118,13 +122,13 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
     setPayDbOrderId(null);
     setPayDbOrderEmail(null);
     setActiveCustomer(customer);
-    setPayBookingId(null);
     setStep('idle');
   }
 
-  function handlePayFromDrawer(orderItems: OrderItem[], bookingId: string) {
-    setCheckoutItems(orderItems);
-    setPayBookingId(bookingId);
+  function handlePayFromDrawer(args: { orderId: string; customerEmail: string; orderItems: OrderItem[] }) {
+    setCheckoutItems(args.orderItems);
+    setPayDbOrderId(args.orderId);
+    setPayDbOrderEmail(args.customerEmail);
     setDrawerOpen(false);
   }
 
@@ -152,24 +156,24 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
           </div>
 
           {/* My Reservations button */}
-          {sitePendingBookings.length > 0 && (
-            <div className="flex justify-center mb-8">
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-wider transition-colors"
-                style={{ borderColor: accent + '60', color: accent }}
-              >
-                <BookMarked size={14} />
-                My Reservations
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-wider transition-colors"
+              style={{ borderColor: accent + '60', color: accent }}
+            >
+              <BookMarked size={14} />
+              My Reservations
+              {pendingCount > 0 && (
                 <span
                   className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                   style={{ backgroundColor: accent }}
                 >
-                  {sitePendingBookings.length}
+                  {pendingCount}
                 </span>
-              </button>
-            </div>
-          )}
+              )}
+            </button>
+          </div>
 
           {/* Reserved-confirmation toast */}
           <AnimatePresence>
@@ -378,6 +382,7 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
           <PendingBookingsDrawer
             accentColor={accent}
             brandName={config.brand.businessName}
+            siteSlug={config.slug}
             onPayNow={handlePayFromDrawer}
             onClose={() => setDrawerOpen(false)}
           />
@@ -481,7 +486,6 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
               setCheckoutItems(null);
               setPayDbOrderId(null);
               setPayDbOrderEmail(null);
-              setPayBookingId(null);
             }}
           />
         )}
