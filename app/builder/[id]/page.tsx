@@ -69,6 +69,7 @@ import ColorPicker from '@/components/customization/ColorPicker';
 import type { Vertical } from '@/lib/types/customization';
 import { getTemplatesForVertical, getTemplate } from '@/lib/templates/registry';
 import type { TemplateDefinition } from '@/lib/templates/types';
+import BuilderTabs from '@/components/builder/BuilderTabs';
 
 /* ─── Shared Styles ─── */
 
@@ -447,6 +448,7 @@ export default function SiteEditorPage() {
           <link rel="stylesheet" href={editorFontsUrl} />
         </>
       )}
+      <BuilderTabs siteId={id} />
       {/* ─── Top Bar ─── */}
       <div className="h-12 border-b border-[#1a1a1a] bg-[#0a0a0a] flex items-center px-4 gap-3 shrink-0">
         <button
