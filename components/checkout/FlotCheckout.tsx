@@ -52,6 +52,7 @@ export default function FlotCheckout({
   const [receiptValue, setReceiptValue] = useState('');
   const [receiptSent, setReceiptSent] = useState(false);
   const [pendingResult, setPendingResult] = useState<unknown>(null);
+  const [orderReference, setOrderReference] = useState<string | null>(null);
 
   const { total } = calculateTotals(orderItems);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +75,18 @@ export default function FlotCheckout({
       if (result.success) {
         setChargeResult(result);
         setPendingResult(result);
+        try {
+          const out = await onSuccess(result);
+          if (out && 'reference' in out && typeof out.reference === 'string') {
+            setOrderReference(out.reference);
+          }
+        } catch (err) {
+          console.error('[checkout] order persistence failed', err);
+          setErrorMessage('We took payment but could not save your order. Please contact support.');
+          setStep('error');
+          onError('Order save failed');
+          return;
+        }
         setStep('success');
       } else {
         setErrorMessage(result.error || 'Payment failed');
@@ -92,9 +105,6 @@ export default function FlotCheckout({
   };
 
   const handleDone = () => {
-    if (pendingResult) {
-      onSuccess(pendingResult as Parameters<typeof onSuccess>[0]);
-    }
     onClose();
   };
 
@@ -450,6 +460,14 @@ export default function FlotCheckout({
                       Your payment of <span className="font-bold text-gray-900">{currencyCode} {total.toFixed(2)}</span><br />
                       has been processed.
                     </p>
+
+                    {orderReference && (
+                      <div className="mt-4 mb-6 text-center">
+                        <p className="text-xs uppercase tracking-wider opacity-60">Order reference</p>
+                        <p className="font-mono text-lg font-semibold mt-1">{orderReference}</p>
+                        <p className="text-xs opacity-60 mt-2">Save this — you may need it to track your order.</p>
+                      </div>
+                    )}
 
                     {/* Receipt option */}
                     {!receiptSent && (

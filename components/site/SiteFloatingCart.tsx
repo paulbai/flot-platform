@@ -8,7 +8,7 @@ import type { ExtraField } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
-import type { CustomerDetails } from '@/store/bookingStore';
+import type { CustomerDetails } from '@/lib/orders/customer';
 
 export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -53,6 +53,50 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
     setCustomer(details);
     setDetailsOpen(false);
     setShowCheckout(true);
+  }
+
+  async function persistOrder(result: { token?: string }): Promise<{ reference?: string }> {
+    const items = siteItems.map((it) => ({
+      name: it.name,
+      description: it.description,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      imageUrl: it.image,
+      variant: it.variant,
+    }));
+
+    const subtotal = siteTotal;
+    const total = siteTotal;
+
+    const details: Record<string, unknown> = {};
+    if (customer?.address) details.deliveryAddress = customer.address;
+
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteSlug: config.slug,
+        status: 'confirmed',
+        customer: {
+          name: customer?.name ?? 'Guest',
+          email: customer?.email ?? 'noreply@flot.local',
+          phone: customer?.phone ?? '+00000000000',
+        },
+        items,
+        subtotal,
+        total,
+        currency: 'Le',
+        paymentMethod: 'flot',
+        paymentRef: result.token ?? null,
+        details,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`POST /api/orders failed: ${res.status}`);
+    }
+    const data = (await res.json()) as { reference?: string };
+    return { reference: data.reference };
   }
 
   return (
@@ -112,9 +156,11 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
             currency="Le"
             vertical={config.vertical}
             extraFields={customerExtraFields}
-            onSuccess={() => {
+            onSuccess={async (result) => {
+              const out = await persistOrder(result as { token?: string });
               clearSite(config.slug);
               setCustomer(null);
+              return out;
             }}
             onError={() => {}}
             onClose={() => setShowCheckout(false)}
