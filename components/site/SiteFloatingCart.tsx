@@ -55,6 +55,50 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
     setShowCheckout(true);
   }
 
+  async function persistOrder(result: { token?: string }): Promise<{ reference?: string }> {
+    const items = siteItems.map((it) => ({
+      name: it.name,
+      description: it.description,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      imageUrl: it.image,
+      variant: it.variant,
+    }));
+
+    const subtotal = siteTotal;
+    const total = siteTotal;
+
+    const details: Record<string, unknown> = {};
+    if (customer?.address) details.deliveryAddress = customer.address;
+
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteSlug: config.slug,
+        status: 'confirmed',
+        customer: {
+          name: customer?.name ?? 'Guest',
+          email: customer?.email ?? 'noreply@flot.local',
+          phone: customer?.phone ?? '+00000000000',
+        },
+        items,
+        subtotal,
+        total,
+        currency: 'Le',
+        paymentMethod: 'flot',
+        paymentRef: result.token ?? null,
+        details,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`POST /api/orders failed: ${res.status}`);
+    }
+    const data = (await res.json()) as { reference?: string };
+    return { reference: data.reference };
+  }
+
   return (
     <>
       {/* Floating cart button */}
@@ -112,9 +156,11 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
             currency="Le"
             vertical={config.vertical}
             extraFields={customerExtraFields}
-            onSuccess={() => {
+            onSuccess={async (result) => {
+              const out = await persistOrder(result as { token?: string });
               clearSite(config.slug);
               setCustomer(null);
+              return out;
             }}
             onError={() => {}}
             onClose={() => setShowCheckout(false)}
