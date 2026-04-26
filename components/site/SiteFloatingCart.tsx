@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/cartStore';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import type { CustomerDetails } from '@/lib/orders/customer';
+import { postOrder } from '@/lib/orders/post';
 
 export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -71,32 +72,31 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
     const details: Record<string, unknown> = {};
     if (customer?.address) details.deliveryAddress = customer.address;
 
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        siteSlug: config.slug,
-        status: 'confirmed',
-        customer: {
-          name: customer?.name ?? 'Guest',
-          email: customer?.email ?? 'noreply@flot.local',
-          phone: customer?.phone ?? '+00000000000',
-        },
-        items,
-        subtotal,
-        total,
-        currency: 'Le',
-        paymentMethod: 'flot',
-        paymentRef: result.token ?? null,
-        details,
-      }),
+    // Use the resilient wrapper — retries on network / 5xx, including the
+    // notorious cold-start failure that was making first-attempt charges
+    // appear to fail.
+    const out = await postOrder({
+      siteSlug: config.slug,
+      status: 'confirmed',
+      customer: {
+        name: customer?.name ?? 'Guest',
+        // Email is optional for restaurant/store; send empty string when not collected.
+        email: customer?.email?.trim() ?? '',
+        phone: customer?.phone ?? '+00000000000',
+      },
+      items,
+      subtotal,
+      total,
+      currency: 'Le',
+      paymentMethod: 'flot',
+      paymentRef: result.token ?? null,
+      details,
     });
 
-    if (!res.ok) {
-      throw new Error(`POST /api/orders failed: ${res.status}`);
+    if (!out.ok) {
+      throw new Error(out.error || 'Order persistence failed');
     }
-    const data = (await res.json()) as { reference?: string };
-    return { reference: data.reference };
+    return { reference: out.reference };
   }
 
   return (
@@ -139,6 +139,7 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
                 : 'Where should we send your order?'
             }
             requireAddress
+            requireEmail={false}
             accentColor={accent}
             onSubmit={handleDetailsSubmit}
             onClose={() => setDetailsOpen(false)}

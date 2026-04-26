@@ -180,11 +180,15 @@ export default function OrderDetailPage() {
         <section className="border border-white/10 rounded-lg p-4">
           <h2 className="text-xs uppercase tracking-wider opacity-60 mb-3">Customer</h2>
           <p className="text-base font-semibold">{order.customerName}</p>
-          <p className="text-sm">
-            <a href={`mailto:${order.customerEmail}`} className="underline opacity-80 hover:opacity-100">
-              {order.customerEmail}
-            </a>
-          </p>
+          {order.customerEmail ? (
+            <p className="text-sm">
+              <a href={`mailto:${order.customerEmail}`} className="underline opacity-80 hover:opacity-100">
+                {order.customerEmail}
+              </a>
+            </p>
+          ) : (
+            <p className="text-sm opacity-50 italic">No email provided</p>
+          )}
           <p className="text-sm">
             <a href={`tel:${order.customerPhone}`} className="underline opacity-80 hover:opacity-100">
               {order.customerPhone}

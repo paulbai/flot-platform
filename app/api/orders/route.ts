@@ -48,7 +48,10 @@ function validateBody(body: unknown): body is CreateOrderBody {
   if (!b.customer || typeof b.customer !== 'object') return false;
   const c = b.customer as Record<string, unknown>;
   if (typeof c.name !== 'string' || !c.name.trim()) return false;
-  if (typeof c.email !== 'string' || !EMAIL_RE.test(c.email)) return false;
+  // Email is optional for store/restaurant flows. If provided, it must be valid;
+  // otherwise empty string is accepted (the merchant dashboard renders "—").
+  if (typeof c.email !== 'string') return false;
+  if (c.email.trim().length > 0 && !EMAIL_RE.test(c.email)) return false;
   if (typeof c.phone !== 'string' || !PHONE_RE.test(c.phone)) return false;
   if (!Array.isArray(b.items) || b.items.length === 0) return false;
   if (typeof b.subtotal !== 'number' || b.subtotal < 0) return false;

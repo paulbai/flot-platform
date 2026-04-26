@@ -10,6 +10,7 @@ import BookingChoiceModal from '@/components/booking/BookingChoiceModal';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import PendingBookingsDrawer from '@/components/booking/PendingBookingsDrawer';
 import type { CustomerDetails } from '@/lib/orders/customer';
+import { postOrder } from '@/lib/orders/post';
 
 type FlowStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay';
 
@@ -84,36 +85,31 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
     const subtotal = activeRoom.pricePerNight * activeNights;
 
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteSlug: config.slug,
-          status: 'pending',
-          customer,
-          items: items.map((it) => ({
-            name: it.name,
-            description: it.description,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            imageUrl: it.image,
-            variant: it.variant,
-          })),
-          subtotal,
-          total: subtotal,
-          currency: 'Le',
-          details: {
-            checkIn: activeCheckIn,
-            checkOut: activeCheckOut,
-            nights: activeNights,
-            guests: activeGuests,
-            roomId: activeRoom.id,
-          },
-        }),
+      const out = await postOrder({
+        siteSlug: config.slug,
+        status: 'pending',
+        customer,
+        items: items.map((it) => ({
+          name: it.name,
+          description: it.description,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          imageUrl: it.image,
+          variant: it.variant,
+        })),
+        subtotal,
+        total: subtotal,
+        currency: 'Le',
+        details: {
+          checkIn: activeCheckIn,
+          checkOut: activeCheckOut,
+          nights: activeNights,
+          guests: activeGuests,
+          roomId: activeRoom.id,
+        },
       });
-      if (!res.ok) throw new Error(`reserve failed: ${res.status}`);
-      const data = (await res.json()) as { reference?: string };
-      setReservedJustNow({ name: activeRoom.name, reference: data.reference });
+      if (!out.ok) throw new Error(out.error || 'reserve failed');
+      setReservedJustNow({ name: activeRoom.name, reference: out.reference });
       setPendingCount((c) => c + 1);
       // Pre-seed the lookup email so when the buyer opens "My Reservations"
       // we don't have to ask them to type it again.
@@ -512,48 +508,44 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                 return;
               }
               try {
-                const res = await fetch('/api/orders', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    siteSlug: config.slug,
-                    status: 'confirmed',
-                    customer: activeCustomer,
-                    items: checkoutItems.map((it) => ({
-                      name: it.name,
-                      description: it.description,
-                      quantity: it.quantity,
-                      unitPrice: it.unitPrice,
-                      imageUrl: it.image,
-                      variant: it.variant,
-                    })),
-                    subtotal: activeRoom.pricePerNight * activeNights,
-                    total: activeRoom.pricePerNight * activeNights,
-                    currency: 'Le',
-                    paymentMethod: 'flot',
-                    paymentRef: token,
-                    details: {
-                      checkIn: activeCheckIn,
-                      checkOut: activeCheckOut,
-                      nights: activeNights,
-                      guests: activeGuests,
-                      roomId: activeRoom.id,
-                    },
-                  }),
+                const out = await postOrder({
+                  siteSlug: config.slug,
+                  status: 'confirmed',
+                  customer: activeCustomer,
+                  items: checkoutItems.map((it) => ({
+                    name: it.name,
+                    description: it.description,
+                    quantity: it.quantity,
+                    unitPrice: it.unitPrice,
+                    imageUrl: it.image,
+                    variant: it.variant,
+                  })),
+                  subtotal: activeRoom.pricePerNight * activeNights,
+                  total: activeRoom.pricePerNight * activeNights,
+                  currency: 'Le',
+                  paymentMethod: 'flot',
+                  paymentRef: token,
+                  details: {
+                    checkIn: activeCheckIn,
+                    checkOut: activeCheckOut,
+                    nights: activeNights,
+                    guests: activeGuests,
+                    roomId: activeRoom.id,
+                  },
                 });
-                const data = res.ok ? ((await res.json()) as { reference?: string }) : {};
+                if (!out.ok) throw new Error(out.error || 'order persistence failed');
                 setCheckoutItems(null);
                 setActiveRoom(null);
                 setActiveCustomer(null);
                 setCheckIn('');
                 setCheckOut('');
                 setGuests(1);
-                return { reference: data.reference };
+                return { reference: out.reference };
               } catch (err) {
                 console.error('[hotel reserve & pay]', err);
                 setCheckoutItems(null);
                 setActiveCustomer(null);
-                return;
+                throw err; // bubble to FlotCheckout so it shows the failure UI
               }
             }}
             onError={() => {}}

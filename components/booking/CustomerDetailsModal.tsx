@@ -8,6 +8,12 @@ import type { CustomerDetails } from '@/lib/orders/customer';
 interface CustomerDetailsModalProps {
   title?: string;
   subtitle?: string;
+  /**
+   * Whether email is required + visible. Default `true` (hotel flow uses email
+   * as the lookup key for the "My Reservations" drawer). Restaurant and store
+   * delivery flows pass `false` to skip the email field entirely.
+   */
+  requireEmail?: boolean;
   requireAddress?: boolean;
   accentColor: string;
   onSubmit: (details: CustomerDetails) => void;
@@ -17,6 +23,7 @@ interface CustomerDetailsModalProps {
 export default function CustomerDetailsModal({
   title = 'Your Details',
   subtitle,
+  requireEmail = true,
   requireAddress = false,
   accentColor,
   onSubmit,
@@ -33,7 +40,7 @@ export default function CustomerDetailsModal({
   const validate = () => {
     const newErrors: Partial<Record<keyof CustomerDetails, string>> = {};
     if (!form.name.trim()) newErrors.name = 'Required';
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    if (requireEmail && (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)))
       newErrors.email = 'Valid email required';
     if (!form.phone.trim()) newErrors.phone = 'Required';
     if (requireAddress && !form.address?.trim()) newErrors.address = 'Required';
@@ -97,23 +104,25 @@ export default function CustomerDetailsModal({
               )}
             </div>
 
-            {/* Email */}
-            <div>
-              <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
-                Email *
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
-                className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
-                style={{ borderColor: errors.email ? 'var(--error)' : 'var(--ash)' }}
-              />
-              {errors.email && (
-                <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.email}</p>
-              )}
-            </div>
+            {/* Email — only when required (hotel flow). Restaurant/store delivery skips this. */}
+            {requireEmail && (
+              <div>
+                <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="you@example.com"
+                  className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
+                  style={{ borderColor: errors.email ? 'var(--error)' : 'var(--ash)' }}
+                />
+                {errors.email && (
+                  <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.email}</p>
+                )}
+              </div>
+            )}
 
             {/* Phone */}
             <div>
