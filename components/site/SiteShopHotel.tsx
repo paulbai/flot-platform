@@ -62,25 +62,50 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
     setStep('choice');
   }
 
-  function handleReserveOnly(customer: CustomerDetails) {
+  async function handleReserveOnly(customer: CustomerDetails) {
     if (!activeRoom) return;
     const items = buildOrderItems(activeRoom, activeNights, activeGuests);
-    addBooking({
-      roomId: activeRoom.id,
-      roomName: activeRoom.name,
-      roomImage: activeRoom.images?.[0] ?? '',
-      customer,
-      checkIn: '',
-      checkOut: '',
-      nights: activeNights,
-      guests: activeGuests,
-      total: activeRoom.pricePerNight * activeNights,
-      orderItems: items,
-    });
-    setReservedJustNow(activeRoom.name);
-    setStep('idle');
-    setActiveRoom(null);
-    setTimeout(() => setReservedJustNow(null), 4000);
+    const subtotal = activeRoom.pricePerNight * activeNights;
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteSlug: config.slug,
+          status: 'pending',
+          customer,
+          items: items.map((it) => ({
+            name: it.name,
+            description: it.description,
+            quantity: it.quantity,
+            unitPrice: it.unitPrice,
+            imageUrl: it.image,
+            variant: it.variant,
+          })),
+          subtotal,
+          total: subtotal,
+          currency: 'Le',
+          details: {
+            checkIn: '',
+            checkOut: '',
+            nights: activeNights,
+            guests: activeGuests,
+            roomId: activeRoom.id,
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`reserve failed: ${res.status}`);
+      const data = (await res.json()) as { reference?: string };
+      setReservedJustNow(`${activeRoom.name}${data.reference ? ` (${data.reference})` : ''}`);
+    } catch (err) {
+      console.error('[hotel reserve only]', err);
+      setReservedJustNow(`${activeRoom.name} — could not save, please try again.`);
+    } finally {
+      setStep('idle');
+      setActiveRoom(null);
+      setTimeout(() => setReservedJustNow(null), 6000);
+    }
   }
 
   function handlePayNow(_customer: CustomerDetails) {
