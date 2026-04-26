@@ -81,7 +81,6 @@ export default function Home() {
   const [hoveredVertical, setHoveredVertical] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
-  const [checkoutLinkCopied, setCheckoutLinkCopied] = useState(false);
 
   const requireAuth = useCallback((redirect: string) => {
     if (session) {
@@ -362,18 +361,16 @@ export default function Home() {
                 >
                   Try Live Demo <ArrowRight size={16} />
                 </Link>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText('https://pay.flotme.ai/');
-                    setCheckoutLinkCopied(true);
-                    setTimeout(() => setCheckoutLinkCopied(false), 2000);
-                  }}
+                <a
+                  href="https://pay.flotme.ai/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold border border-[var(--ash)] text-[var(--cloud)] hover:text-white hover:border-[var(--fog)] transition-colors"
-                  aria-label="Copy Flot checkout link"
+                  aria-label="Open Flot checkout link"
                 >
-                  {checkoutLinkCopied ? <Check size={16} /> : <Code2 size={16} />}
-                  {checkoutLinkCopied ? 'Copied!' : 'Checkout Link'}
-                </button>
+                  <Code2 size={16} />
+                  Checkout Link
+                </a>
               </div>
             </motion.div>
 
