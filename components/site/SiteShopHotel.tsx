@@ -24,6 +24,9 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const [activeGuests, setActiveGuests] = useState(1);
   const [checkoutItems, setCheckoutItems] = useState<OrderItem[] | null>(null);
   const [payBookingId, setPayBookingId] = useState<string | null>(null);
+  const [payDbOrderId, setPayDbOrderId] = useState<string | null>(null);
+  const [payDbOrderEmail, setPayDbOrderEmail] = useState<string | null>(null);
+  const [activeCustomer, setActiveCustomer] = useState<CustomerDetails | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [reservedJustNow, setReservedJustNow] = useState<string | null>(null);
 
@@ -108,10 +111,13 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
     }
   }
 
-  function handlePayNow(_customer: CustomerDetails) {
+  function handlePayNow(customer: CustomerDetails) {
     if (!activeRoom) return;
     const items = buildOrderItems(activeRoom, activeNights, activeGuests);
     setCheckoutItems(items);
+    setPayDbOrderId(null);
+    setPayDbOrderEmail(null);
+    setActiveCustomer(customer);
     setPayBookingId(null);
     setStep('idle');
   }
@@ -387,17 +393,94 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
             orderSummary={checkoutItems}
             currency="Le"
             vertical="hotel"
-            onSuccess={() => {
-              if (payBookingId) removeBooking(payBookingId);
-              setCheckoutItems(null);
-              setPayBookingId(null);
-              setActiveRoom(null);
-              setNights(1);
-              setGuests(1);
+            onSuccess={async (result) => {
+              const token = (result as { token?: string }).token ?? null;
+
+              // Path A: paying-later for an existing pending order — PATCH and include payment fields.
+              if (payDbOrderId) {
+                try {
+                  const res = await fetch(`/api/orders/${payDbOrderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      status: 'confirmed',
+                      paymentMethod: 'flot',
+                      paymentRef: token,
+                    }),
+                  });
+                  if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
+                  // Re-fetch the order so we can show its reference on the success screen.
+                  const detailRes = await fetch(`/api/orders/lookup?siteSlug=${config.slug}&email=${encodeURIComponent(payDbOrderEmail ?? '')}`);
+                  const detail = detailRes.ok ? await detailRes.json() : null;
+                  const matched = detail?.orders?.find((o: { id: string }) => o.id === payDbOrderId);
+                  setCheckoutItems(null);
+                  setPayDbOrderId(null);
+                  setPayDbOrderEmail(null);
+                  return { reference: matched?.reference };
+                } catch (err) {
+                  console.error('[hotel pay-later]', err);
+                  setCheckoutItems(null);
+                  setPayDbOrderId(null);
+                  setPayDbOrderEmail(null);
+                  return;
+                }
+              }
+
+              // Path B: Reserve & Pay (new buyer-pays flow) — POST with the customer details
+              // captured from CustomerDetailsModal in handlePayNow.
+              if (!activeRoom || !activeCustomer) {
+                setCheckoutItems(null);
+                return;
+              }
+              try {
+                const res = await fetch('/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    siteSlug: config.slug,
+                    status: 'confirmed',
+                    customer: activeCustomer,
+                    items: checkoutItems.map((it) => ({
+                      name: it.name,
+                      description: it.description,
+                      quantity: it.quantity,
+                      unitPrice: it.unitPrice,
+                      imageUrl: it.image,
+                      variant: it.variant,
+                    })),
+                    subtotal: activeRoom.pricePerNight * activeNights,
+                    total: activeRoom.pricePerNight * activeNights,
+                    currency: 'Le',
+                    paymentMethod: 'flot',
+                    paymentRef: token,
+                    details: {
+                      checkIn: '',
+                      checkOut: '',
+                      nights: activeNights,
+                      guests: activeGuests,
+                      roomId: activeRoom.id,
+                    },
+                  }),
+                });
+                const data = res.ok ? ((await res.json()) as { reference?: string }) : {};
+                setCheckoutItems(null);
+                setActiveRoom(null);
+                setActiveCustomer(null);
+                setNights(1);
+                setGuests(1);
+                return { reference: data.reference };
+              } catch (err) {
+                console.error('[hotel reserve & pay]', err);
+                setCheckoutItems(null);
+                setActiveCustomer(null);
+                return;
+              }
             }}
             onError={() => {}}
             onClose={() => {
               setCheckoutItems(null);
+              setPayDbOrderId(null);
+              setPayDbOrderEmail(null);
               setPayBookingId(null);
             }}
           />
