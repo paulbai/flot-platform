@@ -2,12 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { OrderItem } from '@/lib/types';
 
-export interface CustomerDetails {
-  name: string;
-  email: string;
-  phone: string;
-  address?: string;
-}
+import type { CustomerDetails } from '@/lib/orders/customer';
+export type { CustomerDetails };
 
 export interface PendingBooking {
   id: string;

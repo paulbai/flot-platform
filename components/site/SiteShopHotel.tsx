@@ -9,7 +9,7 @@ import FlotCheckout from '@/components/checkout/FlotCheckout';
 import BookingChoiceModal from '@/components/booking/BookingChoiceModal';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
 import PendingBookingsDrawer from '@/components/booking/PendingBookingsDrawer';
-import type { CustomerDetails } from '@/store/bookingStore';
+import type { CustomerDetails } from '@/lib/orders/customer';
 
 type FlowStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay';
 

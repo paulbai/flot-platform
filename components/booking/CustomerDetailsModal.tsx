@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import type { CustomerDetails } from '@/store/bookingStore';
+import type { CustomerDetails } from '@/lib/orders/customer';
 
 interface CustomerDetailsModalProps {
   title?: string;

@@ -8,7 +8,7 @@ import type { ExtraField } from '@/lib/types';
 import { useCartStore } from '@/store/cartStore';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
 import CustomerDetailsModal from '@/components/booking/CustomerDetailsModal';
-import type { CustomerDetails } from '@/store/bookingStore';
+import type { CustomerDetails } from '@/lib/orders/customer';
 
 export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
