@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, BedDouble, Minus, Plus, CalendarCheck, BookMarked } from 'lucide-react';
+import { Users, BedDouble, Minus, Plus, CalendarCheck, BookMarked, Calendar } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
 import type { Room, OrderItem } from '@/lib/types';
 import FlotCheckout from '@/components/checkout/FlotCheckout';
@@ -13,13 +13,27 @@ import type { CustomerDetails } from '@/lib/orders/customer';
 
 type FlowStep = 'idle' | 'choice' | 'details-reserve' | 'details-pay';
 
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function nightsBetween(checkIn: string, checkOut: string): number {
+  if (!checkIn || !checkOut) return 0;
+  const ms = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return Math.max(1, Math.round(ms / 86400000));
+}
+
 export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const rooms = config.hotelContent?.rooms ?? [];
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [nights, setNights] = useState(1);
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
   const [step, setStep] = useState<FlowStep>('idle');
   const [activeRoom, setActiveRoom] = useState<Room | null>(null);
+  const [activeCheckIn, setActiveCheckIn] = useState('');
+  const [activeCheckOut, setActiveCheckOut] = useState('');
   const [activeNights, setActiveNights] = useState(1);
   const [activeGuests, setActiveGuests] = useState(1);
   const [checkoutItems, setCheckoutItems] = useState<OrderItem[] | null>(null);
@@ -62,8 +76,12 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   }
 
   function openChoice(room: Room) {
+    const computedNights = nightsBetween(checkIn, checkOut);
+    if (!checkIn || !checkOut || computedNights < 1) return;
     setActiveRoom(room);
-    setActiveNights(nights);
+    setActiveCheckIn(checkIn);
+    setActiveCheckOut(checkOut);
+    setActiveNights(computedNights);
     setActiveGuests(guests);
     setSelectedRoom(null);
     setStep('choice');
@@ -94,8 +112,8 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
           total: subtotal,
           currency: 'Le',
           details: {
-            checkIn: '',
-            checkOut: '',
+            checkIn: activeCheckIn,
+            checkOut: activeCheckOut,
             nights: activeNights,
             guests: activeGuests,
             roomId: activeRoom.id,
@@ -199,7 +217,8 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                 style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                 onClick={() => {
                   setSelectedRoom(selectedRoom?.id === room.id ? null : room);
-                  setNights(1);
+                  setCheckIn('');
+                  setCheckOut('');
                   setGuests(1);
                 }}
               >
@@ -263,24 +282,42 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="px-4 pb-4 border-t border-white/10 pt-4 space-y-4">
-                        {/* Nights selector */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">Nights</span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => setNights(Math.max(1, nights - 1))}
-                              className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:border-white/40"
-                            >
-                              <Minus size={14} />
-                            </button>
-                            <span className="w-6 text-center font-semibold">{nights}</span>
-                            <button
-                              onClick={() => setNights(Math.min(14, nights + 1))}
-                              className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:border-white/40"
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </div>
+                        {/* Date pickers — required */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-[11px] uppercase tracking-wider opacity-60 flex items-center gap-1">
+                              <Calendar size={10} /> Check-in <span style={{ color: accent }}>*</span>
+                            </span>
+                            <input
+                              type="date"
+                              required
+                              value={checkIn}
+                              min={todayISO()}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setCheckIn(v);
+                                // Bump check-out to be after check-in if invalid
+                                if (checkOut && v && new Date(checkOut) <= new Date(v)) {
+                                  setCheckOut('');
+                                }
+                              }}
+                              className="bg-white/5 border border-white/15 rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-white/40 [color-scheme:dark]"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-[11px] uppercase tracking-wider opacity-60 flex items-center gap-1">
+                              <Calendar size={10} /> Check-out <span style={{ color: accent }}>*</span>
+                            </span>
+                            <input
+                              type="date"
+                              required
+                              value={checkOut}
+                              min={checkIn || todayISO()}
+                              disabled={!checkIn}
+                              onChange={(e) => setCheckOut(e.target.value)}
+                              className="bg-white/5 border border-white/15 rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-white/40 disabled:opacity-40 [color-scheme:dark]"
+                            />
+                          </label>
                         </div>
 
                         {/* Guests selector */}
@@ -304,25 +341,36 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                         </div>
 
                         {/* Total + Book Now */}
-                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                          <div>
-                            <span className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>Total</span>
-                            <p className="text-lg font-bold" style={{ color: config.brand.textColor }}>
-                              Le{(room.pricePerNight * nights).toLocaleString()}
-                            </p>
-                            <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>
-                              ${((room.pricePerNight * nights) / 24).toFixed(2)}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => openChoice(room)}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-transform hover:scale-105"
-                            style={{ backgroundColor: accent }}
-                          >
-                            <CalendarCheck size={16} />
-                            Book Now
-                          </button>
-                        </div>
+                        {(() => {
+                          const computedNights = nightsBetween(checkIn, checkOut);
+                          const datesValid = computedNights >= 1;
+                          const total = room.pricePerNight * Math.max(1, computedNights);
+                          return (
+                            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                              <div>
+                                <span className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>
+                                  {datesValid ? `${computedNights} night${computedNights > 1 ? 's' : ''} · Total` : 'Pick dates to see total'}
+                                </span>
+                                <p className="text-lg font-bold" style={{ color: config.brand.textColor }}>
+                                  Le{total.toLocaleString()}
+                                </p>
+                                <p className="text-xs" style={{ color: config.brand.textColor, opacity: 0.5 }}>
+                                  ${(total / 24).toFixed(2)}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => openChoice(room)}
+                                disabled={!datesValid}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-transform hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                style={{ backgroundColor: accent }}
+                                title={datesValid ? 'Book this room' : 'Pick check-in and check-out dates first'}
+                              >
+                                <CalendarCheck size={16} />
+                                Book Now
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </motion.div>
                   )}
@@ -337,7 +385,7 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
       <AnimatePresence>
         {step === 'choice' && activeRoom && (
           <BookingChoiceModal
-            roomName={activeRoom.name}
+            roomName={`${activeRoom.name} · ${activeCheckIn} → ${activeCheckOut} (${activeNights} night${activeNights > 1 ? 's' : ''})`}
             total={`Le${(activeRoom.pricePerNight * activeNights).toLocaleString()}`}
             accentColor={accent}
             onReserveOnly={() => setStep('details-reserve')}
@@ -459,8 +507,8 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                     paymentMethod: 'flot',
                     paymentRef: token,
                     details: {
-                      checkIn: '',
-                      checkOut: '',
+                      checkIn: activeCheckIn,
+                      checkOut: activeCheckOut,
                       nights: activeNights,
                       guests: activeGuests,
                       roomId: activeRoom.id,
@@ -471,7 +519,8 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                 setCheckoutItems(null);
                 setActiveRoom(null);
                 setActiveCustomer(null);
-                setNights(1);
+                setCheckIn('');
+                setCheckOut('');
                 setGuests(1);
                 return { reference: data.reference };
               } catch (err) {

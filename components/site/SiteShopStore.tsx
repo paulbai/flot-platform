@@ -14,6 +14,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const addItem = useCartStore((s) => s.addItem);
   const rb = resolveBrand(config.brand);
   const accent = config.brand.accentColor;
@@ -25,20 +26,32 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
     ? products
     : products.filter((p) => p.category === activeCategory);
 
+  // Whether the open product is missing any required selection.
+  const sizeRequired = !!(selectedProduct?.sizes && selectedProduct.sizes.length > 0);
+  const colorRequired = !!(selectedProduct?.colors && selectedProduct.colors.length > 0);
+  const canAddToCart =
+    !!selectedProduct &&
+    (!sizeRequired || !!selectedSize) &&
+    (!colorRequired || !!selectedColor);
+
   function handleAddToCart(product: Product) {
+    if (!canAddToCart) return;
+    const variantParts = [selectedSize, selectedColor].filter(Boolean) as string[];
+    const variantLabel = variantParts.join(' / ');
     addItem({
-      id: `${config.slug}-product-${product.id}-${selectedSize || 'default'}-${Date.now()}`,
+      id: `${config.slug}-product-${product.id}-${variantParts.join('-') || 'default'}-${Date.now()}`,
       name: product.name,
-      description: selectedSize ? `Size: ${selectedSize}` : undefined,
+      description: variantLabel ? variantLabel : undefined,
       quantity: 1,
       unitPrice: product.price,
       image: product.images?.[0],
-      variant: selectedSize || undefined,
+      variant: variantLabel || undefined,
       vertical: 'store',
       siteSlug: config.slug,
     });
     setSelectedProduct(null);
     setSelectedSize(null);
+    setSelectedColor(null);
   }
 
   return (
@@ -98,7 +111,11 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
               style={{ backgroundColor: rb.cardColor, borderColor: rb.borderColor }}
               onClick={() => {
                 setSelectedProduct(product);
+                // Pre-select the first option so the most common case is one tap.
+                // The buyer can still change before adding to cart; the Add button
+                // is gated on a real selection in `canAddToCart`.
                 setSelectedSize(product.sizes?.[0] ?? null);
+                setSelectedColor(product.colors?.[0] ?? null);
               }}
             >
               {product.images?.[0] && (
@@ -185,11 +202,13 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
                 )}
 
                 {/* Size selector */}
-                {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
+                {sizeRequired && (
                   <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Size</span>
-                    <div className="flex gap-2 mt-2">
-                      {selectedProduct.sizes.map((size) => (
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Size <span style={{ color: accent }}>*</span>
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedProduct.sizes!.map((size) => (
                         <button
                           key={size}
                           onClick={() => setSelectedSize(size)}
@@ -207,13 +226,51 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
                   </div>
                 )}
 
+                {/* Color selector */}
+                {colorRequired && (
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Color <span style={{ color: accent }}>*</span>
+                      {selectedColor && (
+                        <span className="ml-2 normal-case tracking-normal text-gray-400 font-normal">
+                          {selectedColor}
+                        </span>
+                      )}
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedProduct.colors!.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
+                          style={{
+                            borderColor: selectedColor === color ? accent : rb.borderColor,
+                            backgroundColor: selectedColor === color ? accent + '20' : 'transparent',
+                            color: selectedColor === color ? accent : 'inherit',
+                          }}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={() => handleAddToCart(selectedProduct)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+                  disabled={!canAddToCart}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                   style={{ backgroundColor: accent }}
+                  title={
+                    canAddToCart
+                      ? 'Add to cart'
+                      : `Pick a ${sizeRequired && !selectedSize ? 'size' : 'color'} first`
+                  }
                 >
                   <ShoppingCart size={16} />
-                  Add to Cart
+                  {canAddToCart
+                    ? 'Add to Cart'
+                    : `Pick ${sizeRequired && !selectedSize ? 'size' : 'color'}`}
                 </button>
               </div>
             </motion.div>

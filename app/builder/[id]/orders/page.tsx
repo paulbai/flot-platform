@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 import BuilderTabs from '@/components/builder/BuilderTabs';
 import StatusPill from '@/components/orders/StatusPill';
 import { ORDER_STATUSES, type OrderStatus } from '@/lib/orders/types';
@@ -17,61 +18,135 @@ interface OrderRow {
   createdAt: string;
 }
 
+const PAGE_SIZE = 200;
+
+// localStorage cache for instant first paint on slow connections.
+const cacheKey = (siteId: string) => `flot:orders-cache:${siteId}`;
+
+function readCache(siteId: string): OrderRow[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(cacheKey(siteId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { orders: OrderRow[]; ts: number };
+    // Cache valid for 5 minutes — beyond that we'd rather show fresh.
+    if (Date.now() - parsed.ts > 5 * 60_000) return null;
+    return parsed.orders;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(siteId: string, orders: OrderRow[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(cacheKey(siteId), JSON.stringify({ orders, ts: Date.now() }));
+  } catch {
+    // sessionStorage may be unavailable / full — ignore.
+  }
+}
+
 export default function OrdersListPage() {
   const params = useParams<{ id: string }>();
   const siteId = params.id;
-  const [orders, setOrders] = useState<OrderRow[]>([]);
-  const [counts, setCounts] = useState<Record<OrderStatus | 'all', number>>({
-    all: 0, pending: 0, confirmed: 0, fulfilled: 0, cancelled: 0,
-  });
+
+  // Single source of truth: ALL orders for this site.
+  // Counts and the filtered list are derived locally — zero refetches when switching pills.
+  const [allOrders, setAllOrders] = useState<OrderRow[]>(() => readCache(siteId) ?? []);
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(allOrders.length === 0);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchOrders = useCallback(async (signal?: AbortSignal) => {
+    const url = `/api/orders?siteId=${encodeURIComponent(siteId)}&limit=${PAGE_SIZE}`;
+    const res = await fetch(url, { signal });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = (await res.json()) as { orders: OrderRow[] };
+    return data.orders;
+  }, [siteId]);
+
+  // Initial load (or background refresh if we have cached data).
   useEffect(() => {
+    const ctrl = new AbortController();
     let cancelled = false;
+
     async function load() {
-      setLoading(true);
       setError(null);
       try {
-        const url = filter === 'all'
-          ? `/api/orders?siteId=${encodeURIComponent(siteId)}`
-          : `/api/orders?siteId=${encodeURIComponent(siteId)}&status=${filter}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`status ${res.status}`);
-        const data = (await res.json()) as { orders: OrderRow[] };
+        const orders = await fetchOrders(ctrl.signal);
         if (cancelled) return;
-        setOrders(data.orders);
-
-        // Count totals by hitting the API once per status (cheap; cached if needed later).
-        const countsRes = await Promise.all(ORDER_STATUSES.map((s) =>
-          fetch(`/api/orders?siteId=${encodeURIComponent(siteId)}&status=${s}&limit=1`).then((r) => r.ok ? r.json() : { orders: [] }),
-        ));
-        // The API doesn't return a total; we approximate using a separate "all" fetch.
-        const allRes = await fetch(`/api/orders?siteId=${encodeURIComponent(siteId)}&limit=100`);
-        const all = allRes.ok ? (await allRes.json()).orders as OrderRow[] : [];
-        if (cancelled) return;
-        const c = { all: all.length, pending: 0, confirmed: 0, fulfilled: 0, cancelled: 0 } as Record<OrderStatus | 'all', number>;
-        for (const o of all) c[o.status as OrderStatus]++;
-        // We loaded `countsRes` for completeness; not used directly. Kept as a side-effect-free probe of API health.
-        void countsRes;
-        setCounts(c);
+        setAllOrders(orders);
+        writeCache(siteId, orders);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load');
+        if (cancelled || ctrl.signal.aborted) return;
+        // If we already had cached data, don't blow away the UI on a transient failure —
+        // just surface a small error chip.
+        setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     }
+
     load();
-    return () => { cancelled = true; };
-  }, [siteId, filter]);
+    return () => { cancelled = true; ctrl.abort(); };
+  }, [siteId, fetchOrders]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const orders = await fetchOrders();
+      setAllOrders(orders);
+      writeCache(siteId, orders);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to refresh');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  // Derive counts from the single fetched list.
+  const counts = useMemo(() => {
+    const c: Record<OrderStatus | 'all', number> = {
+      all: allOrders.length,
+      pending: 0,
+      confirmed: 0,
+      fulfilled: 0,
+      cancelled: 0,
+    };
+    for (const o of allOrders) c[o.status]++;
+    return c;
+  }, [allOrders]);
+
+  // Derive the visible list from the active pill.
+  const visibleOrders = useMemo(() => {
+    if (filter === 'all') return allOrders;
+    return allOrders.filter((o) => o.status === filter);
+  }, [allOrders, filter]);
+
+  const showSkeleton = loading && allOrders.length === 0;
 
   return (
     <main className="min-h-screen bg-black text-white">
       <BuilderTabs siteId={siteId} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-semibold mb-6">Orders</h1>
+        <div className="flex items-center justify-between mb-6 gap-4">
+          <h1 className="text-2xl font-semibold">Orders</h1>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || showSkeleton}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-white/20 hover:bg-white/5 transition-colors disabled:opacity-40"
+            aria-label="Refresh"
+          >
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
 
         {/* Filter pills */}
         <div className="flex flex-wrap gap-2 mb-6">
@@ -87,28 +162,51 @@ export default function OrdersListPage() {
               }}
             >
               {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-              <span className="ml-2 opacity-60">{counts[s] ?? 0}</span>
+              <span className="ml-2 opacity-60">{counts[s]}</span>
             </button>
           ))}
         </div>
 
-        {/* Body */}
-        {loading && <p className="text-sm opacity-60">Loading…</p>}
-        {error && <p className="text-sm text-red-400">Error: {error}</p>}
-
-        {!loading && !error && orders.length === 0 && (
-          <div className="text-center py-16 opacity-60">
-            <p className="text-sm">No orders yet.</p>
-            <p className="text-xs mt-1">Once buyers complete checkout on your published site, they&apos;ll show up here.</p>
+        {/* Inline error banner — non-blocking when we have cached data to show. */}
+        {error && (
+          <div className="mb-4 px-3 py-2 rounded-md text-xs bg-red-500/10 border border-red-500/30 text-red-300">
+            Couldn&apos;t reach the server: {error}. Showing last loaded data.
           </div>
         )}
 
-        {!loading && !error && orders.length > 0 && (
+        {/* Body */}
+        {showSkeleton && (
           <ul className="divide-y divide-white/10 border border-white/10 rounded-lg overflow-hidden">
-            {orders.map((o) => (
+            {[0, 1, 2, 3].map((i) => (
+              <li key={i} className="grid grid-cols-1 sm:grid-cols-[100px_1fr_auto_auto_120px] items-center gap-4 px-4 py-3">
+                <span className="h-3 w-16 bg-white/10 rounded animate-pulse" />
+                <span className="h-3 w-32 bg-white/10 rounded animate-pulse" />
+                <span className="h-3 w-12 bg-white/10 rounded animate-pulse" />
+                <span className="h-4 w-16 bg-white/10 rounded-full animate-pulse" />
+                <span className="h-3 w-20 bg-white/10 rounded animate-pulse justify-self-end" />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!showSkeleton && visibleOrders.length === 0 && (
+          <div className="text-center py-16 opacity-60">
+            <p className="text-sm">{filter === 'all' ? 'No orders yet.' : `No ${filter} orders.`}</p>
+            <p className="text-xs mt-1">
+              {filter === 'all'
+                ? "Once buyers complete checkout on your published site, they'll show up here."
+                : 'Try a different filter.'}
+            </p>
+          </div>
+        )}
+
+        {!showSkeleton && visibleOrders.length > 0 && (
+          <ul className="divide-y divide-white/10 border border-white/10 rounded-lg overflow-hidden">
+            {visibleOrders.map((o) => (
               <li key={o.id}>
                 <Link
                   href={`/builder/${siteId}/orders/${o.id}`}
+                  prefetch={false}
                   className="grid grid-cols-1 sm:grid-cols-[100px_1fr_auto_auto_120px] items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors"
                 >
                   <span className="font-mono text-xs">{o.reference}</span>
