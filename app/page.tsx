@@ -81,6 +81,7 @@ export default function Home() {
   const [hoveredVertical, setHoveredVertical] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
+  const [checkoutLinkCopied, setCheckoutLinkCopied] = useState(false);
 
   const requireAuth = useCallback((redirect: string) => {
     if (session) {
@@ -363,12 +364,15 @@ export default function Home() {
                 </Link>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/checkout-preview`);
+                    navigator.clipboard.writeText('https://pay.flotme.ai/');
+                    setCheckoutLinkCopied(true);
+                    setTimeout(() => setCheckoutLinkCopied(false), 2000);
                   }}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold border border-[var(--ash)] text-[var(--cloud)] hover:text-white hover:border-[var(--fog)] transition-colors"
+                  aria-label="Copy Flot checkout link"
                 >
-                  <Code2 size={16} />
-                  Copy Checkout Link
+                  {checkoutLinkCopied ? <Check size={16} /> : <Code2 size={16} />}
+                  {checkoutLinkCopied ? 'Copied!' : 'Checkout Link'}
                 </button>
               </div>
             </motion.div>
