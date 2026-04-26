@@ -43,6 +43,8 @@ export default function PendingBookingsDrawer({
   const [orders, setOrders] = useState<BackendOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryAt, setRetryAt] = useState<number | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   // Restore email from sessionStorage on mount
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function PendingBookingsDrawer({
     if (saved) setEmail(saved);
   }, []);
 
-  // Fetch orders whenever email changes
+  // Fetch orders whenever email changes (or the user clicks retry).
   useEffect(() => {
     if (!email) return;
     let cancelled = false;
@@ -62,13 +64,18 @@ export default function PendingBookingsDrawer({
           `/api/orders/lookup?siteSlug=${encodeURIComponent(siteSlug)}&email=${encodeURIComponent(email!)}`,
         );
         if (!res.ok) {
-          if (res.status === 429) throw new Error('Too many lookups — please wait a moment.');
-          throw new Error('Lookup failed');
+          if (res.status === 429) {
+            // Schedule a retry hint ~30s out (rate-limit window is 60s).
+            setRetryAt(Date.now() + 30_000);
+            throw new Error('Too many lookups right now — try again in a moment.');
+          }
+          throw new Error('Lookup failed — check your connection.');
         }
         const data = (await res.json()) as { orders: BackendOrder[] };
         if (cancelled) return;
-        // Show only pending and confirmed bookings (the buyer's "live" reservations).
+        // Show pending and confirmed bookings (the buyer's "live" reservations).
         setOrders(data.orders.filter((o) => o.status === 'pending' || o.status === 'confirmed'));
+        setRetryAt(null);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
@@ -77,7 +84,11 @@ export default function PendingBookingsDrawer({
     }
     load();
     return () => { cancelled = true; };
-  }, [email, siteSlug]);
+  }, [email, siteSlug, refreshTick]);
+
+  function retry() {
+    setRefreshTick((t) => t + 1);
+  }
 
   function submitEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -148,7 +159,21 @@ export default function PendingBookingsDrawer({
             ) : loading ? (
               <p className="text-sm text-[var(--fog)] text-center mt-8">Loading…</p>
             ) : error ? (
-              <p className="text-sm text-red-400 text-center mt-8">{error}</p>
+              <div className="flex flex-col items-center gap-3 mt-8 px-2 text-center">
+                <p className="text-sm text-red-400">{error}</p>
+                <button
+                  onClick={retry}
+                  className="px-4 py-2 rounded-md text-sm font-semibold border border-white/20 hover:bg-white/5 transition-colors"
+                >
+                  {retryAt && retryAt > Date.now() ? 'Try again' : 'Retry'}
+                </button>
+                <button
+                  onClick={() => { sessionStorage.removeItem(SESSION_EMAIL_KEY); setEmail(null); setError(null); }}
+                  className="text-xs underline opacity-60 hover:opacity-100"
+                >
+                  Use a different email
+                </button>
+              </div>
             ) : orders.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 text-center">
                 <CalendarDays size={32} className="mb-3" style={{ color: accentColor, opacity: 0.4 }} />

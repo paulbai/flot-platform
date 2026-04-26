@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, BedDouble, Minus, Plus, CalendarCheck, BookMarked, Calendar } from 'lucide-react';
 import type { SiteConfig } from '@/lib/types/customization';
@@ -41,20 +41,11 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const [payDbOrderEmail, setPayDbOrderEmail] = useState<string | null>(null);
   const [activeCustomer, setActiveCustomer] = useState<CustomerDetails | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [reservedJustNow, setReservedJustNow] = useState<string | null>(null);
+  const [reservedJustNow, setReservedJustNow] = useState<{ name: string; reference?: string; error?: boolean } | null>(null);
+  // Optimistic local count of reservations the buyer has just made on this device.
+  // The drawer fetches the authoritative list on open — no eager pre-fetch from the
+  // page (that was burning the lookup rate-limit bucket on every drawer toggle).
   const [pendingCount, setPendingCount] = useState(0);
-
-  // Refresh the pending count from the server when the email is known.
-  useEffect(() => {
-    const email = typeof window !== 'undefined' ? sessionStorage.getItem('flot:lookup-email') : null;
-    if (!email) { setPendingCount(0); return; }
-    fetch(`/api/orders/lookup?siteSlug=${encodeURIComponent(config.slug)}&email=${encodeURIComponent(email)}`)
-      .then((r) => r.ok ? r.json() : { orders: [] })
-      .then((data: { orders: { status: string }[] }) => {
-        setPendingCount(data.orders.filter((o) => o.status === 'pending').length);
-      })
-      .catch(() => setPendingCount(0));
-  }, [config.slug, drawerOpen]);
 
   const accent = config.brand.accentColor;
 
@@ -122,14 +113,20 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
       });
       if (!res.ok) throw new Error(`reserve failed: ${res.status}`);
       const data = (await res.json()) as { reference?: string };
-      setReservedJustNow(`${activeRoom.name}${data.reference ? ` (${data.reference})` : ''}`);
-    } catch (err) {
-      console.error('[hotel reserve only]', err);
-      setReservedJustNow(`${activeRoom.name} — could not save, please try again.`);
-    } finally {
+      setReservedJustNow({ name: activeRoom.name, reference: data.reference });
+      setPendingCount((c) => c + 1);
+      // Pre-seed the lookup email so when the buyer opens "My Reservations"
+      // we don't have to ask them to type it again.
+      try {
+        sessionStorage.setItem('flot:lookup-email', customer.email.toLowerCase().trim());
+      } catch { /* sessionStorage unavailable — fine */ }
       setStep('idle');
       setActiveRoom(null);
-      setTimeout(() => setReservedJustNow(null), 6000);
+    } catch (err) {
+      console.error('[hotel reserve only]', err);
+      setReservedJustNow({ name: activeRoom.name, error: true });
+      setStep('idle');
+      setActiveRoom(null);
     }
   }
 
@@ -193,17 +190,46 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
             </button>
           </div>
 
-          {/* Reserved-confirmation toast */}
+          {/* Reserved-confirmation banner — persistent until dismissed so the
+              buyer sees the reference and any error clearly. */}
           <AnimatePresence>
             {reservedJustNow && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mb-6 text-center text-sm"
-                style={{ color: accent }}
+                className="mb-6 mx-auto max-w-xl rounded-lg border px-4 py-3 flex items-start gap-3"
+                style={{
+                  borderColor: reservedJustNow.error ? '#ef4444' : accent + '60',
+                  backgroundColor: reservedJustNow.error ? '#ef444410' : accent + '10',
+                  color: reservedJustNow.error ? '#fca5a5' : accent,
+                }}
               >
-                Reserved: {reservedJustNow}. Check &quot;My Reservations&quot; to pay when ready.
+                <div className="flex-1 text-sm">
+                  {reservedJustNow.error ? (
+                    <>
+                      <strong>Couldn&apos;t save your reservation for {reservedJustNow.name}.</strong>{' '}
+                      Please check your connection and try again.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Reserved: {reservedJustNow.name}.</strong>{' '}
+                      {reservedJustNow.reference && (
+                        <>
+                          Reference: <span className="font-mono">{reservedJustNow.reference}</span>.{' '}
+                        </>
+                      )}
+                      Click &quot;My Reservations&quot; above to view or pay.
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => setReservedJustNow(null)}
+                  aria-label="Dismiss"
+                  className="opacity-60 hover:opacity-100"
+                >
+                  ×
+                </button>
               </motion.div>
             )}
           </AnimatePresence>

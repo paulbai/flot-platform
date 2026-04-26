@@ -95,6 +95,28 @@ export default function OrdersListPage() {
     return () => { cancelled = true; ctrl.abort(); };
   }, [siteId, fetchOrders]);
 
+  // Auto-refresh when the merchant returns to the tab — so they always see the latest
+  // orders on resume without having to remember to hit Refresh.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      // Background refresh — silent; the spinner is reserved for explicit clicks.
+      fetchOrders()
+        .then((orders) => {
+          setAllOrders(orders);
+          writeCache(siteId, orders);
+          setError(null);
+        })
+        .catch(() => { /* keep last data; the error chip is for explicit clicks */ });
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [siteId, fetchOrders]);
+
   async function handleRefresh() {
     setRefreshing(true);
     try {

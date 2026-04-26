@@ -63,7 +63,10 @@ export async function verifyOtp(email: string, code: string): Promise<boolean> {
   return true;
 }
 
-export async function isRateLimited(key: string): Promise<boolean> {
+export async function isRateLimited(
+  key: string,
+  maxRequests: number = MAX_REQUESTS_PER_WINDOW,
+): Promise<boolean> {
   const now = new Date();
 
   // Clean up expired entries
@@ -87,7 +90,7 @@ export async function isRateLimited(key: string): Promise<boolean> {
     .set({ count: entry.count + 1 })
     .where(eq(rateLimits.id, entry.id));
 
-  return entry.count >= MAX_REQUESTS_PER_WINDOW;
+  return entry.count >= maxRequests;
 }
 
 // Cleanup expired entries (call periodically or on each request)

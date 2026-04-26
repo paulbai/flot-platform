@@ -16,7 +16,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'siteSlug and a valid email are required' }, { status: 400 });
     }
 
-    if (await isRateLimited(`lookup:${email}`)) {
+    // Lookup is cheap (read-only, no SMS/email send) — use a much more lenient
+    // bucket than the default 3/min OTP limit. 30/min per email is plenty for
+    // human use and still cuts off any abusive scripted scan.
+    if (await isRateLimited(`lookup:${email}`, 30)) {
       return NextResponse.json(
         { error: 'Too many lookup requests. Please wait a moment.' },
         { status: 429 },
