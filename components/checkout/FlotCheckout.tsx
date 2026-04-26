@@ -51,7 +51,7 @@ export default function FlotCheckout({
   const [receiptMethod, setReceiptMethod] = useState<'email' | 'whatsapp' | null>(null);
   const [receiptValue, setReceiptValue] = useState('');
   const [receiptSent, setReceiptSent] = useState(false);
-  const [pendingResult, setPendingResult] = useState<unknown>(null);
+  const [, setPendingResult] = useState<unknown>(null);
   const [orderReference, setOrderReference] = useState<string | null>(null);
 
   const { total } = calculateTotals(orderItems);

@@ -29,11 +29,11 @@ export default function HotelPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [payItems, setPayItems] = useState<OrderItem[]>([]);
-  const [payDbOrderId, setPayDbOrderId] = useState<string | null>(null);
 
+  // Template demo only — `args.orderId` is not used because this page does not
+  // actually persist orders (the merchant-site path in /[slug] does that).
   const handlePayNow = (args: { orderId: string; customerEmail: string; orderItems: OrderItem[] }) => {
     setPayItems(args.orderItems);
-    setPayDbOrderId(args.orderId);
     setDrawerOpen(false);
     setCheckoutOpen(true);
   };
@@ -265,11 +265,10 @@ export default function HotelPage() {
             currency="USD"
             vertical="hotel"
             onSuccess={() => {
-              setPayDbOrderId(null);
               setCheckoutOpen(false);
             }}
             onError={() => {}}
-            onClose={() => { setCheckoutOpen(false); setPayDbOrderId(null); }}
+            onClose={() => { setCheckoutOpen(false); }}
           />
         )}
       </AnimatePresence>
