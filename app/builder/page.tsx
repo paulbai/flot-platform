@@ -23,6 +23,7 @@ import { useSiteBuilderStore } from '@/store/siteBuilderStore';
 import { getTemplatesForVertical } from '@/lib/templates/registry';
 import type { TemplateDefinition } from '@/lib/templates/types';
 import type { Vertical } from '@/lib/types/customization';
+import { useAllSitesOrderNotifications } from '@/lib/hooks/useOrderNotifications';
 
 const verticals: { key: Vertical; label: string; icon: React.ReactNode; color: string; comingSoon?: boolean }[] = [
   { key: 'hotel', label: 'Hotel', icon: <Hotel className="w-6 h-6" />, color: '#d4a96a' },
@@ -62,6 +63,10 @@ export default function BuilderDashboard() {
     () => sites.filter((s) => s.ownerEmail === userId),
     [sites, userId]
   );
+
+  // Per-site notification counts. Polls every 30s and on tab focus.
+  const mySiteIds = useMemo(() => mySites.map((s) => s.id), [mySites]);
+  const { countsBySite } = useAllSitesOrderNotifications(mySiteIds);
 
   const [showCreate, setShowCreate] = useState(false);
   const [step, setStep] = useState<'vertical' | 'template' | 'name'>('vertical');
@@ -241,11 +246,19 @@ export default function BuilderDashboard() {
 
                 <button
                   onClick={() => router.push(`/builder/${site.id}/orders`)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
-                  title="View orders"
+                  className="relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
+                  title={countsBySite[site.id] ? `${countsBySite[site.id]} new order${countsBySite[site.id] === 1 ? '' : 's'}` : 'View orders'}
                 >
                   <Package className="w-3 h-3" style={{ color: site.brand.accentColor }} />
                   Orders
+                  {countsBySite[site.id] > 0 && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-bold bg-orange-500 text-white border-2 border-[#111]"
+                      aria-label={`${countsBySite[site.id]} new orders`}
+                    >
+                      {countsBySite[site.id] > 99 ? '99+' : countsBySite[site.id]}
+                    </span>
+                  )}
                 </button>
 
                 {site.status === 'published' && (

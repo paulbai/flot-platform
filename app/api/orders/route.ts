@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { sites, orders, orderItems } from '@/lib/db/schema';
 import { generateReference } from '@/lib/orders/reference';
 import { ORDER_STATUSES, type OrderStatus, type OrderVertical } from '@/lib/orders/types';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 const idAlphabet = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const newOrderId = () => `ord_${idAlphabet()}`;
@@ -139,6 +140,35 @@ export async function POST(request: Request) {
       siteId: site.id,
       ownerEmail: site.ownerEmail,
       vertical,
+    });
+
+    // Best-effort: send a confirmation email to the buyer if they provided
+    // one. Doesn't await — we don't want a slow email provider to delay the
+    // 201 response or surface as a 5xx if Resend hiccups. The function
+    // already swallows its own errors.
+    const businessName = (() => {
+      try {
+        const cfg = (typeof site.config === 'string' ? JSON.parse(site.config) : site.config) as
+          { brand?: { businessName?: string } } | null;
+        return cfg?.brand?.businessName || site.slug;
+      } catch {
+        return site.slug;
+      }
+    })();
+    void sendOrderConfirmationEmail({
+      to: body.customer.email,
+      reference: created.reference,
+      brandName: businessName,
+      customerName: body.customer.name,
+      total: Math.round(body.total),
+      currency: body.currency || 'Le',
+      items: body.items.map((it) => ({
+        name: it.name,
+        quantity: Math.max(1, Math.round(it.quantity)),
+        unitPrice: Math.round(it.unitPrice),
+      })),
+      vertical,
+      status: body.status,
     });
 
     return NextResponse.json({

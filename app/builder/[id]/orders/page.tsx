@@ -7,6 +7,7 @@ import { RefreshCw } from 'lucide-react';
 import BuilderTabs from '@/components/builder/BuilderTabs';
 import StatusPill from '@/components/orders/StatusPill';
 import { ORDER_STATUSES, type OrderStatus } from '@/lib/orders/types';
+import { markOrdersSeen } from '@/lib/hooks/useOrderNotifications';
 
 interface OrderRow {
   id: string;
@@ -68,6 +69,11 @@ export default function OrdersListPage() {
 
   // Initial load (or background refresh if we have cached data).
   useEffect(() => {
+    // Viewing the orders list = the merchant has "seen" the new ones.
+    // Reset the badge counter every time this page mounts so the BuilderTabs
+    // pill clears immediately, and the next poll computes from this moment.
+    markOrdersSeen(siteId);
+
     const ctrl = new AbortController();
     let cancelled = false;
 
@@ -100,6 +106,8 @@ export default function OrdersListPage() {
   useEffect(() => {
     function onVisible() {
       if (document.visibilityState !== 'visible') return;
+      // Returning to this tab = the merchant has caught up; clear the badge.
+      markOrdersSeen(siteId);
       // Background refresh — silent; the spinner is reserved for explicit clicks.
       fetchOrders()
         .then((orders) => {
