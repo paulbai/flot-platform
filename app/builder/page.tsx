@@ -237,19 +237,19 @@ export default function BuilderDashboard() {
               <div className="mt-auto pt-3 border-t border-[#1e1e1e] flex items-center gap-2">
                 <button
                   onClick={() => router.push(`/builder/${site.id}`)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 min-h-[44px] rounded-lg bg-white text-black text-xs font-semibold hover:bg-white/90 transition-colors"
                   title="Edit site"
                 >
-                  <Pencil className="w-3 h-3" />
+                  <Pencil className="w-3.5 h-3.5" />
                   Edit
                 </button>
 
                 <button
                   onClick={() => router.push(`/builder/${site.id}/orders`)}
-                  className="relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
+                  className="relative flex-1 flex items-center justify-center gap-1.5 px-2 min-h-[44px] rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
                   title={countsBySite[site.id] ? `${countsBySite[site.id]} new order${countsBySite[site.id] === 1 ? '' : 's'}` : 'View orders'}
                 >
-                  <Package className="w-3 h-3" style={{ color: site.brand.accentColor }} />
+                  <Package className="w-3.5 h-3.5" style={{ color: site.brand.accentColor }} />
                   Orders
                   {countsBySite[site.id] > 0 && (
                     <span
@@ -264,21 +264,24 @@ export default function BuilderDashboard() {
                 {site.status === 'published' && (
                   <button
                     onClick={() => window.open(`/site/${site.slug}`, '_blank')}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
+                    // Hide the "Preview" label on the smallest phones — keep the eye icon as
+                    // a square button so the row never overflows at 320px wide.
+                    className="flex items-center justify-center gap-1.5 px-2 min-h-[44px] min-w-[44px] sm:flex-1 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] transition-colors text-xs font-medium"
                     title="Open published site in a new tab"
+                    aria-label="Preview site"
                   >
-                    <Eye className="w-3 h-3" />
-                    Preview
+                    <Eye className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Preview</span>
                   </button>
                 )}
 
                 <button
                   onClick={() => setDeleteConfirm(site.id)}
-                  className="flex items-center justify-center w-9 h-9 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
+                  className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
                   title="Delete site"
                   aria-label="Delete site"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </motion.div>

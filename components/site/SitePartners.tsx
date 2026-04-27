@@ -80,7 +80,7 @@ export default function SitePartners({ config }: { config: SiteConfig }) {
                 style={{ minWidth: '160px' }}
               >
                 {partner.logoUrl ? (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={partner.logoUrl}
                     alt={partner.name}
                     className={`h-10 sm:h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300`}

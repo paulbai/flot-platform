@@ -179,7 +179,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
           {/* Brand centered */}
           <div className="flex flex-col items-center gap-2 pb-8 text-center">
             {brand.logoUrl && (
-              <img
+              <img loading="lazy" decoding="async"
                 src={brand.logoUrl}
                 alt={brand.businessName}
                 className="h-10 w-auto object-contain"
@@ -224,7 +224,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
           <div className="pb-12">
             <div className="flex items-center gap-3">
               {brand.logoUrl && (
-                <img
+                <img loading="lazy" decoding="async"
                   src={brand.logoUrl}
                   alt={brand.businessName}
                   className="h-14 w-auto object-contain"
@@ -292,7 +292,7 @@ export default function SiteFooter({ config }: { config: SiteConfig }) {
           <div>
             <div className="flex items-center gap-2">
               {brand.logoUrl && (
-                <img
+                <img loading="lazy" decoding="async"
                   src={brand.logoUrl}
                   alt={brand.businessName}
                   className="h-10 w-auto object-contain"

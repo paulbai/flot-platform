@@ -310,7 +310,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                         }}
                         onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode()}
                         placeholder="000000"
-                        className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-[var(--ash)]/30 text-white placeholder:text-[var(--fog)]/50 text-center text-2xl font-mono tracking-[0.3em] focus:border-[var(--flot)] focus:ring-1 focus:ring-[var(--flot)] outline-none transition-all"
+                        autoComplete="one-time-code"
+                        className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-[var(--ash)]/30 text-white placeholder:text-[var(--fog)]/50 text-center text-xl sm:text-2xl font-mono tracking-[0.18em] sm:tracking-[0.3em] focus:border-[var(--flot)] focus:ring-1 focus:ring-[var(--flot)] outline-none transition-all"
                       />
 
                       {error && (

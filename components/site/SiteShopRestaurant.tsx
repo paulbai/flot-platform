@@ -131,26 +131,29 @@ export default function SiteShopRestaurant({ config }: { config: SiteConfig }) {
                 {qty === 0 ? (
                   <button
                     onClick={() => handleAdd(item)}
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-transform hover:scale-110 shrink-0"
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 shrink-0"
                     style={{ backgroundColor: accent }}
+                    aria-label={`Add ${item.name}`}
                   >
-                    <Plus size={16} />
+                    <Plus size={18} />
                   </button>
                 ) : (
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => handleRemove(item.id)}
-                      className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:border-white/40"
+                      className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-white/40 active:scale-95 transition-transform"
+                      aria-label={`Remove one ${item.name}`}
                     >
-                      <Minus size={14} />
+                      <Minus size={16} />
                     </button>
-                    <span className="w-5 text-center text-sm font-semibold">{qty}</span>
+                    <span className="w-6 text-center text-sm font-semibold tabular-nums">{qty}</span>
                     <button
                       onClick={() => handleAdd(item)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white active:scale-95 transition-transform"
                       style={{ backgroundColor: accent }}
+                      aria-label={`Add another ${item.name}`}
                     >
-                      <Plus size={14} />
+                      <Plus size={16} />
                     </button>
                   </div>
                 )}

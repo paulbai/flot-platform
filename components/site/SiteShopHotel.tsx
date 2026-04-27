@@ -254,7 +254,7 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
               >
                 {room.images?.[0] && (
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={room.images[0]}
                       alt={room.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

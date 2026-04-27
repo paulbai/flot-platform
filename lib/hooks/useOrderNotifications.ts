@@ -172,18 +172,23 @@ export function useAllSitesOrderNotifications(siteIds: string[]): UseAllSitesNot
       setCountsBySite({});
       return;
     }
-    const next: Record<string, number> = {};
-    for (const id of siteIds) {
-      try {
-        const res = await fetch(`/api/orders?siteId=${encodeURIComponent(id)}&limit=50`);
-        if (!res.ok) { next[id] = 0; continue; }
-        const data = (await res.json()) as { orders: OrderRow[] };
-        const lastSeen = readLastSeen(id);
-        next[id] = data.orders.filter((o) => new Date(o.createdAt).getTime() > lastSeen).length;
-      } catch {
-        next[id] = 0;
-      }
-    }
+    // Run all site polls in parallel — sequential awaits used to make the
+    // total round-trip = sum of all sites, which scaled poorly. Now it's
+    // bounded by the slowest single request.
+    const results = await Promise.all(
+      siteIds.map(async (id): Promise<[string, number]> => {
+        try {
+          const res = await fetch(`/api/orders?siteId=${encodeURIComponent(id)}&limit=50`);
+          if (!res.ok) return [id, 0];
+          const data = (await res.json()) as { orders: OrderRow[] };
+          const lastSeen = readLastSeen(id);
+          return [id, data.orders.filter((o) => new Date(o.createdAt).getTime() > lastSeen).length];
+        } catch {
+          return [id, 0];
+        }
+      }),
+    );
+    const next = Object.fromEntries(results);
     setCountsBySite(next);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey]);

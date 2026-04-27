@@ -315,4 +315,26 @@ html {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* iOS Safari (and some Chrome on Android) zooms in on a focused input
+     when its computed font-size is below 16px. That zoom-in breaks the
+     layout of any modal/drawer that's positioned with viewport units.
+     Force a 16px minimum on mobile widths only — desktop keeps its
+     fluid clamp() typography untouched. */
+  @media (max-width: 640px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Bottom-of-screen safe-area padding so floating buttons and modal
+     CTAs don't sit underneath the iOS home indicator. */
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

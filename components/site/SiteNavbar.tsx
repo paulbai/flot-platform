@@ -183,9 +183,11 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
     <button
       onClick={() => setMobileOpen((v) => !v)}
       aria-label="Toggle menu"
+      // 44x44 minimum tap target — center the icon inside via flex.
+      className="w-11 h-11 flex items-center justify-center -mr-2"
       style={{ color: showSolidText ? brand.textColor : brand.textColor }}
     >
-      {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+      {mobileOpen ? <X size={22} /> : <Menu size={22} />}
     </button>
   );
 
@@ -219,12 +221,12 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
           <div className="flex items-center justify-between md:hidden">
             {logoBlock}
             <button
-              className="md:hidden"
+              className="md:hidden w-11 h-11 flex items-center justify-center -mr-2"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
               style={{ color: showSolidText ? brand.textColor : brand.textColor }}
             >
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -275,12 +277,12 @@ export default function SiteNavbar({ config }: { config: SiteConfig }) {
 
         {/* Mobile Hamburger */}
         <button
-          className="md:hidden"
+          className="md:hidden w-11 h-11 flex items-center justify-center -mr-2"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
           style={{ color: showSolidText ? brand.textColor : brand.textColor }}
         >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 

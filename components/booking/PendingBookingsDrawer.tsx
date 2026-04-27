@@ -122,14 +122,17 @@ export default function PendingBookingsDrawer({
         <motion.div
           initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-          className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[var(--ink)] border-l border-[var(--ash)] flex flex-col"
+          // Explicit dark palette + colorScheme:dark — same rationale as the
+          // other modals: don't inherit brand text-color washout.
+          style={{ backgroundColor: '#0f0f10', borderColor: '#27272a', color: '#ffffff', colorScheme: 'dark' }}
+          className="absolute right-0 top-0 bottom-0 w-full max-w-md border-l flex flex-col safe-bottom"
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--ash)]">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
             <div>
-              <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium">My Reservations</h2>
-              <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mt-0.5">{brandName}</p>
+              <h2 className="text-lg font-semibold text-white">My Reservations</h2>
+              <p className="text-xs text-zinc-400 mt-0.5">{brandName}</p>
             </div>
-            <button onClick={onClose} className="text-[var(--fog)] hover:text-[var(--paper)] transition-colors cursor-pointer">
+            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" aria-label="Close">
               <X size={20} />
             </button>
           </div>
@@ -137,15 +140,19 @@ export default function PendingBookingsDrawer({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {!email ? (
               <form onSubmit={submitEmail} className="flex flex-col gap-3 mt-8">
-                <p className="text-sm text-[var(--paper)]">
+                <p className="text-sm text-white">
                   Enter the email you used when reserving to see your bookings:
                 </p>
                 <input
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="you@example.com"
-                  className="px-3 py-2 rounded-md bg-[var(--stone)] border border-[var(--ash)] text-[var(--paper)]"
+                  className="px-3 py-2.5 rounded-md bg-zinc-900 border border-zinc-700 text-white placeholder:text-zinc-500"
                 />
                 {error && <p className="text-xs text-red-400">{error}</p>}
                 <button

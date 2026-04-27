@@ -438,7 +438,10 @@ export default function SiteEditorPage() {
   })();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)]">
+    // On mobile: lift the height cap so the page scrolls naturally and every
+    // editor field is reachable. On desktop: keep the fixed-viewport layout
+    // so the live preview pane stays put while the sidebar scrolls inside it.
+    <div className="flex flex-col md:h-[calc(100vh-56px)]">
       {/* Load Google Fonts for sidebar preview */}
       {editorFontsUrl && (
         <>
@@ -507,9 +510,11 @@ export default function SiteEditorPage() {
       </div>
 
       {/* ─── Main Area ─── */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* ─── Sidebar ─── */}
-        <aside className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-[#1a1a1a] bg-[#0a0a0a] overflow-y-auto max-h-[50vh] md:max-h-none">
+      <div className="flex flex-col md:flex-row md:flex-1 md:overflow-hidden">
+        {/* ─── Sidebar ─── On mobile this expands to its natural height so
+             every form field is reachable; on desktop it stays a fixed-width
+             scroll column with the preview pane on the right. */}
+        <aside className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-[#1a1a1a] bg-[#0a0a0a] md:overflow-y-auto">
           {/* Site header */}
           <div className="px-4 py-3 border-b border-[#1a1a1a]">
             <h2 className="text-sm font-semibold truncate">{site.brand.businessName}</h2>

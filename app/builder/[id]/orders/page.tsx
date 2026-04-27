@@ -165,16 +165,18 @@ export default function OrdersListPage() {
       <BuilderTabs siteId={siteId} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex items-center justify-between mb-6 gap-4">
-          <h1 className="text-2xl font-semibold">Orders</h1>
+        <div className="flex items-center justify-between mb-6 gap-3">
+          <h1 className="text-xl sm:text-2xl font-semibold truncate min-w-0">Orders</h1>
           <button
             onClick={handleRefresh}
             disabled={refreshing || showSkeleton}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-white/20 hover:bg-white/5 transition-colors disabled:opacity-40"
-            aria-label="Refresh"
+            // On phones the label is hidden — the spinning icon is enough.
+            className="flex items-center justify-center gap-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium border border-white/20 hover:bg-white/5 transition-colors disabled:opacity-40 shrink-0"
+            aria-label={refreshing ? 'Refreshing' : 'Refresh orders'}
+            title={refreshing ? 'Refreshing…' : 'Refresh orders'}
           >
-            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-            {refreshing ? 'Refreshing…' : 'Refresh'}
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">{refreshing ? 'Refreshing…' : 'Refresh'}</span>
           </button>
         </div>
 

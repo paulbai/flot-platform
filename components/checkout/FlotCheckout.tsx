@@ -146,13 +146,15 @@ export default function FlotCheckout({
         aria-modal="true"
         aria-label={`${brandName} Checkout`}
       >
-        {/* Close button */}
+        {/* Close button — pinned to the top-right of the card itself.
+            Was previously positioned at -top-10 (above the card) which
+            put it offscreen on phones with the modal centered. */}
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 text-white/40 hover:text-white transition-colors z-20"
+          className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-700 transition-colors"
           aria-label="Close checkout"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
         {/* White Card */}
@@ -353,6 +355,8 @@ export default function FlotCheckout({
                       <div className="space-y-3">
                         <input
                           type="text"
+                          inputMode="numeric"
+                          autoComplete="cc-number"
                           placeholder="Card Number"
                           value={cardData.number}
                           onChange={(e) => {
@@ -360,11 +364,13 @@ export default function FlotCheckout({
                             const formatted = val.replace(/(\d{4})/g, '$1 ').trim();
                             setCardData((d) => ({ ...d, number: formatted }));
                           }}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                         />
                         <div className="flex gap-3">
                           <input
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="cc-exp"
                             placeholder="MM/YY"
                             value={cardData.expiry}
                             onChange={(e) => {
@@ -372,22 +378,25 @@ export default function FlotCheckout({
                               if (val.length >= 3) val = val.slice(0, 2) + '/' + val.slice(2);
                               setCardData((d) => ({ ...d, expiry: val }));
                             }}
-                            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
+                            className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-gray-300 text-base text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                           />
                           <input
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="cc-csc"
                             placeholder="CVV"
                             value={cardData.cvv}
                             onChange={(e) => setCardData((d) => ({ ...d, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                            className="w-24 px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
+                            className="w-24 shrink-0 px-4 py-3 rounded-xl border border-gray-300 text-base text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                           />
                         </div>
                         <input
                           type="text"
+                          autoComplete="cc-name"
                           placeholder="Cardholder Name"
                           value={cardData.name}
                           onChange={(e) => setCardData((d) => ({ ...d, name: e.target.value }))}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base text-gray-900 placeholder:text-gray-400 focus:border-[#80F0C0] focus:ring-1 focus:ring-[#80F0C0] outline-none"
                         />
                       </div>
                     </motion.div>

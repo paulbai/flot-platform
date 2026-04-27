@@ -79,7 +79,7 @@ function AuthorBlock({
   return (
     <div className="flex items-center gap-3">
       {item.avatar ? (
-        <img
+        <img loading="lazy" decoding="async"
           src={item.avatar}
           alt={item.name}
           className="h-10 w-10 rounded-full object-cover"

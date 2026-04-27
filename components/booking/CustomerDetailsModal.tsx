@@ -124,6 +124,7 @@ export default function CustomerDetailsModal({
               </label>
               <input
                 type="text"
+                autoComplete="name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
@@ -148,6 +149,10 @@ export default function CustomerDetailsModal({
                 </label>
                 <input
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
@@ -173,6 +178,8 @@ export default function CustomerDetailsModal({
                 </label>
                 <input
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
@@ -197,6 +204,7 @@ export default function CustomerDetailsModal({
                   Delivery Address *
                 </label>
                 <textarea
+                  autoComplete="street-address"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}

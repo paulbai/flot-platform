@@ -120,7 +120,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
             >
               {product.images?.[0] && (
                 <div className="relative aspect-square overflow-hidden">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={product.images[0]}
                     alt={product.name}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -169,7 +169,7 @@ export default function SiteShopStore({ config }: { config: SiteConfig }) {
             >
               {selectedProduct.images?.[0] && (
                 <div className="relative aspect-[4/3]">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={selectedProduct.images[0]}
                     alt={selectedProduct.name}
                     className="h-full w-full object-cover"

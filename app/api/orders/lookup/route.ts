@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { sites, orders, orderItems } from '@/lib/db/schema';
 import { isRateLimited } from '@/lib/otp';
@@ -45,11 +45,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ orders: [] });
     }
 
+    // Fetch only the items belonging to THIS query's orders. The previous
+    // `select().from(orderItems)` (no WHERE) was an N+1 disaster — it loaded
+    // every order item in the entire database on every lookup.
     const orderIds = orderRows.map((o) => o.id);
-    const allItems = await db().select().from(orderItems);
-    const itemsByOrder = new Map<string, typeof allItems>();
-    for (const item of allItems) {
-      if (!orderIds.includes(item.orderId)) continue;
+    const items = await db().select().from(orderItems)
+      .where(inArray(orderItems.orderId, orderIds));
+    const itemsByOrder = new Map<string, typeof items>();
+    for (const item of items) {
       const list = itemsByOrder.get(item.orderId) ?? [];
       list.push(item);
       itemsByOrder.set(item.orderId, list);

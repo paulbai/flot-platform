@@ -262,7 +262,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
                   transition={{ duration: 0.6 }}
                   className={`overflow-hidden ${borderRadius}`}
                 >
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={about.image}
                     alt={about.title}
                     className="h-auto w-full object-cover"
@@ -609,7 +609,7 @@ export default function SiteAbout({ config }: { config: SiteConfig }) {
             viewport={{ once: true, margin: '-100px' }}
             variants={sectionVariants}
           >
-            <img
+            <img loading="lazy" decoding="async"
               src={about.image}
               alt={about.title}
               className="absolute inset-0 h-full w-full object-cover"
