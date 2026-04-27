@@ -110,8 +110,11 @@ export default function SiteFloatingCart({ config }: { config: SiteConfig }) {
       customer: {
         name: customer?.name?.trim() || 'Guest',
         email: customer?.email?.trim() ?? '',
-        // Phone is optional for dine-in/takeaway. Server now accepts empty string.
-        phone: customer?.phone?.trim() ?? '',
+        // Phone is optional for dine-in/takeaway; for delivery the buyer types
+        // it with spaces ("+232 76 000 000") which the server regex rejects.
+        // Strip every non-digit/+ before sending so the server validation
+        // (^\+?[1-9]\d{6,14}$) is satisfied either way.
+        phone: (customer?.phone ?? '').replace(/[^\d+]/g, ''),
       },
       items: orderItems,
       subtotal,

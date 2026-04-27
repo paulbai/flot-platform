@@ -23,17 +23,14 @@ export const flotMock = {
 
   async charge(_payload: ChargePayload): Promise<ChargeResult> {
     await delay(1800);
-    // 95% success in demo
-    if (Math.random() > 0.05) {
-      return {
-        success: true,
-        chargeId: `ch_${randomId()}`,
-        orderId: `FLT-${shortId()}`,
-      };
-    }
+    // Mock always succeeds — until a real payment gateway (Paystack /
+    // Flutterwave / mobile-money) is wired up, the buyer experience should
+    // be consistent so merchants and testers can validate the rest of the
+    // flow without random "Insufficient funds" pop-ups.
     return {
-      success: false,
-      error: 'Insufficient funds. Please try another card.',
+      success: true,
+      chargeId: `ch_${randomId()}`,
+      orderId: `FLT-${shortId()}`,
     };
   },
 

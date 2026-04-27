@@ -85,10 +85,18 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
     const subtotal = activeRoom.pricePerNight * activeNights;
 
     try {
+      // Strip non-digit/+ from phone to satisfy server regex
+      // (buyers naturally type "+232 76 000 000" with spaces).
+      const normalizedCustomer: CustomerDetails = {
+        ...customer,
+        name: customer.name.trim(),
+        email: customer.email.trim().toLowerCase(),
+        phone: customer.phone.replace(/[^\d+]/g, ''),
+      };
       const out = await postOrder({
         siteSlug: config.slug,
         status: 'pending',
-        customer,
+        customer: normalizedCustomer,
         items: items.map((it) => ({
           name: it.name,
           description: it.description,
@@ -114,7 +122,7 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
       // Pre-seed the lookup email so when the buyer opens "My Reservations"
       // we don't have to ask them to type it again.
       try {
-        sessionStorage.setItem('flot:lookup-email', customer.email.toLowerCase().trim());
+        sessionStorage.setItem('flot:lookup-email', normalizedCustomer.email);
       } catch { /* sessionStorage unavailable — fine */ }
       setStep('idle');
       setActiveRoom(null);
@@ -511,7 +519,12 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                 const out = await postOrder({
                   siteSlug: config.slug,
                   status: 'confirmed',
-                  customer: activeCustomer,
+                  customer: {
+                    ...activeCustomer,
+                    name: activeCustomer.name.trim(),
+                    email: activeCustomer.email.trim().toLowerCase(),
+                    phone: activeCustomer.phone.replace(/[^\d+]/g, ''),
+                  },
                   items: checkoutItems.map((it) => ({
                     name: it.name,
                     description: it.description,

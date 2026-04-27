@@ -26,6 +26,17 @@ interface CustomerDetailsModalProps {
   onClose: () => void;
 }
 
+// Explicit dark-mode palette for the modal — does NOT use the SiteRenderer's
+// brand CSS variables. The modal renders inside the merchant-styled site root
+// (which can set text color, fonts, etc. on every descendant); we lock the
+// modal's colors so the form is always legible regardless of the brand.
+const MODAL_BG          = '#0f0f10';
+const MODAL_BORDER      = '#27272a'; // zinc-800
+const INPUT_BG          = '#18181b'; // zinc-900
+const INPUT_BORDER      = '#3f3f46'; // zinc-700
+const INPUT_BORDER_FOCUS = '#71717a'; // zinc-500
+const INPUT_BORDER_ERR  = '#ef4444'; // red-500
+
 export default function CustomerDetailsModal({
   title = 'Your Details',
   subtitle,
@@ -59,6 +70,9 @@ export default function CustomerDetailsModal({
     if (validate()) onSubmit(form);
   };
 
+  const inputBaseClass =
+    'w-full rounded-md px-3 py-2.5 text-sm font-normal text-white outline-none transition-colors placeholder:text-zinc-500';
+
   return (
     <AnimatePresence>
       <motion.div
@@ -74,19 +88,29 @@ export default function CustomerDetailsModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-6"
+          // colorScheme: 'dark' tells the browser to render input carets,
+          // selection, and date pickers in dark-mode style — without this,
+          // Chrome on Mac uses light defaults that look broken.
+          style={{
+            backgroundColor: MODAL_BG,
+            borderColor: MODAL_BORDER,
+            color: '#ffffff',
+            colorScheme: 'dark',
+          }}
+          className="w-full max-w-md border rounded-xl p-6"
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium">{title}</h2>
+              <h2 className="text-lg font-semibold text-white">{title}</h2>
               {subtitle && (
-                <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mt-0.5">{subtitle}</p>
+                <p className="text-xs text-zinc-400 mt-0.5">{subtitle}</p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="text-[var(--fog)] hover:text-[var(--paper)] transition-colors cursor-pointer ml-4 mt-0.5"
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer ml-4 mt-0.5"
+              aria-label="Close"
             >
               <X size={18} />
             </button>
@@ -95,38 +119,48 @@ export default function CustomerDetailsModal({
           <div className="space-y-4">
             {/* Full Name */}
             <div>
-              <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
                 Full Name *
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = errors.name ? INPUT_BORDER_ERR : INPUT_BORDER)}
                 placeholder="e.g. Amara Kamara"
-                className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
-                style={{ borderColor: errors.name ? 'var(--error)' : 'var(--ash)' }}
+                className={inputBaseClass}
+                style={{
+                  backgroundColor: INPUT_BG,
+                  border: `1px solid ${errors.name ? INPUT_BORDER_ERR : INPUT_BORDER}`,
+                }}
               />
               {errors.name && (
-                <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.name}</p>
+                <p className="text-xs text-red-400 mt-1">{errors.name}</p>
               )}
             </div>
 
             {/* Email — only when required (hotel flow). Restaurant/store delivery skips this. */}
             {requireEmail && (
               <div>
-                <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
                   Email *
                 </label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = errors.email ? INPUT_BORDER_ERR : INPUT_BORDER)}
                   placeholder="you@example.com"
-                  className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
-                  style={{ borderColor: errors.email ? 'var(--error)' : 'var(--ash)' }}
+                  className={inputBaseClass}
+                  style={{
+                    backgroundColor: INPUT_BG,
+                    border: `1px solid ${errors.email ? INPUT_BORDER_ERR : INPUT_BORDER}`,
+                  }}
                 />
                 {errors.email && (
-                  <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.email}</p>
+                  <p className="text-xs text-red-400 mt-1">{errors.email}</p>
                 )}
               </div>
             )}
@@ -134,19 +168,24 @@ export default function CustomerDetailsModal({
             {/* Phone — only when required (hidden for dine-in). */}
             {requirePhone && (
               <div>
-                <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
                   Phone *
                 </label>
                 <input
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = errors.phone ? INPUT_BORDER_ERR : INPUT_BORDER)}
                   placeholder="+232 76 000 000"
-                  className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
-                  style={{ borderColor: errors.phone ? 'var(--error)' : 'var(--ash)' }}
+                  className={inputBaseClass}
+                  style={{
+                    backgroundColor: INPUT_BG,
+                    border: `1px solid ${errors.phone ? INPUT_BORDER_ERR : INPUT_BORDER}`,
+                  }}
                 />
                 {errors.phone && (
-                  <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.phone}</p>
+                  <p className="text-xs text-red-400 mt-1">{errors.phone}</p>
                 )}
               </div>
             )}
@@ -154,19 +193,24 @@ export default function CustomerDetailsModal({
             {/* Delivery Address */}
             {requireAddress && (
               <div>
-                <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
                   Delivery Address *
                 </label>
                 <textarea
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = INPUT_BORDER_FOCUS)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = errors.address ? INPUT_BORDER_ERR : INPUT_BORDER)}
                   placeholder="Street address, City"
                   rows={2}
-                  className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors resize-none placeholder:text-[var(--fog)]/50"
-                  style={{ borderColor: errors.address ? 'var(--error)' : 'var(--ash)' }}
+                  className={`${inputBaseClass} resize-none`}
+                  style={{
+                    backgroundColor: INPUT_BG,
+                    border: `1px solid ${errors.address ? INPUT_BORDER_ERR : INPUT_BORDER}`,
+                  }}
                 />
                 {errors.address && (
-                  <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.address}</p>
+                  <p className="text-xs text-red-400 mt-1">{errors.address}</p>
                 )}
               </div>
             )}
@@ -174,7 +218,7 @@ export default function CustomerDetailsModal({
 
           <button
             onClick={handleSubmit}
-            className="mt-6 w-full py-3 rounded-sm text-[var(--text-sm)] font-body font-semibold uppercase tracking-wider transition-opacity hover:opacity-90 cursor-pointer"
+            className="mt-6 w-full py-3 rounded-md text-sm font-semibold uppercase tracking-wider transition-opacity hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: accentColor, color: '#000' }}
           >
             Continue

@@ -61,44 +61,46 @@ export default function OrderTypeModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md bg-[var(--ink)] border border-[var(--ash)] rounded-sm p-6"
+          // Explicit dark palette — see CustomerDetailsModal for the rationale.
+          style={{
+            backgroundColor: '#0f0f10',
+            borderColor: '#27272a',
+            color: '#ffffff',
+            colorScheme: 'dark',
+          }}
+          className="w-full max-w-md border rounded-xl p-6"
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-1">
-            <h2 className="font-display text-[var(--text-lg)] text-[var(--paper)] font-medium">
+            <h2 className="text-lg font-semibold text-white">
               How would you like your order?
             </h2>
             <button
               onClick={onClose}
-              className="text-[var(--fog)] hover:text-[var(--paper)] transition-colors cursor-pointer ml-4 mt-0.5"
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer ml-4 mt-0.5"
               aria-label="Close"
             >
               <X size={18} />
             </button>
           </div>
-          <p className="text-[var(--text-xs)] text-[var(--fog)] font-body mb-6">
-            From {brandName}
-          </p>
+          <p className="text-xs text-zinc-400 mb-6">From {brandName}</p>
 
           <div className="space-y-3">
             {CHOICES.map(({ type, label, blurb, Icon }) => (
               <button
                 key={type}
                 onClick={() => onSelect(type)}
-                className="w-full flex items-start gap-4 p-4 bg-[var(--stone)] border border-[var(--ash)] rounded-sm text-left transition-colors duration-200 cursor-pointer"
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = accentColor + '60')}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--ash)')}
+                className="w-full flex items-start gap-4 p-4 rounded-lg text-left transition-colors duration-200 cursor-pointer"
+                style={{ backgroundColor: '#18181b', border: '1px solid #3f3f46' }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = accentColor + '99')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#3f3f46')}
               >
                 <div className="mt-0.5 flex-shrink-0" style={{ color: accentColor }}>
                   <Icon size={20} />
                 </div>
                 <div>
-                  <p className="font-display text-[var(--text-md)] text-[var(--paper)] font-medium mb-1">
-                    {label}
-                  </p>
-                  <p className="text-[var(--text-xs)] text-[var(--fog)] font-body leading-relaxed">
-                    {blurb}
-                  </p>
+                  <p className="text-sm font-semibold text-white mb-1">{label}</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed">{blurb}</p>
                 </div>
               </button>
             ))}
