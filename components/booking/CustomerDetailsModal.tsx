@@ -14,6 +14,12 @@ interface CustomerDetailsModalProps {
    * delivery flows pass `false` to skip the email field entirely.
    */
   requireEmail?: boolean;
+  /**
+   * Whether phone is required + visible. Default `true` (most flows need a way
+   * to contact the buyer). Dine-in passes `false` since the merchant just
+   * needs a name to call out the order at the table.
+   */
+  requirePhone?: boolean;
   requireAddress?: boolean;
   accentColor: string;
   onSubmit: (details: CustomerDetails) => void;
@@ -24,6 +30,7 @@ export default function CustomerDetailsModal({
   title = 'Your Details',
   subtitle,
   requireEmail = true,
+  requirePhone = true,
   requireAddress = false,
   accentColor,
   onSubmit,
@@ -42,7 +49,7 @@ export default function CustomerDetailsModal({
     if (!form.name.trim()) newErrors.name = 'Required';
     if (requireEmail && (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)))
       newErrors.email = 'Valid email required';
-    if (!form.phone.trim()) newErrors.phone = 'Required';
+    if (requirePhone && !form.phone.trim()) newErrors.phone = 'Required';
     if (requireAddress && !form.address?.trim()) newErrors.address = 'Required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -124,23 +131,25 @@ export default function CustomerDetailsModal({
               </div>
             )}
 
-            {/* Phone */}
-            <div>
-              <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
-                Phone *
-              </label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="+232 76 000 000"
-                className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
-                style={{ borderColor: errors.phone ? 'var(--error)' : 'var(--ash)' }}
-              />
-              {errors.phone && (
-                <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.phone}</p>
-              )}
-            </div>
+            {/* Phone — only when required (hidden for dine-in). */}
+            {requirePhone && (
+              <div>
+                <label className="block text-[var(--text-xs)] font-body uppercase tracking-wider text-[var(--fog)] mb-1.5">
+                  Phone *
+                </label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+232 76 000 000"
+                  className="w-full bg-[var(--stone)] border rounded-sm px-3 py-2.5 text-[var(--text-sm)] font-body text-[var(--paper)] focus:outline-none transition-colors placeholder:text-[var(--fog)]/50"
+                  style={{ borderColor: errors.phone ? 'var(--error)' : 'var(--ash)' }}
+                />
+                {errors.phone && (
+                  <p className="text-[var(--text-xs)] text-[var(--error)] mt-1">{errors.phone}</p>
+                )}
+              </div>
+            )}
 
             {/* Delivery Address */}
             {requireAddress && (

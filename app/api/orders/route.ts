@@ -52,7 +52,9 @@ function validateBody(body: unknown): body is CreateOrderBody {
   // otherwise empty string is accepted (the merchant dashboard renders "—").
   if (typeof c.email !== 'string') return false;
   if (c.email.trim().length > 0 && !EMAIL_RE.test(c.email)) return false;
-  if (typeof c.phone !== 'string' || !PHONE_RE.test(c.phone)) return false;
+  // Phone is optional for dine-in. Same rule: accept empty, otherwise validate.
+  if (typeof c.phone !== 'string') return false;
+  if (c.phone.trim().length > 0 && !PHONE_RE.test(c.phone)) return false;
   if (!Array.isArray(b.items) || b.items.length === 0) return false;
   if (typeof b.subtotal !== 'number' || b.subtotal < 0) return false;
   if (typeof b.total !== 'number' || b.total < 0) return false;

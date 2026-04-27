@@ -124,6 +124,18 @@ export default function OrderDetailPage() {
     ? (order.details as unknown as OrderDetailsAddressed)
     : null;
 
+  // Restaurants tag each order with the order type (dine-in / takeaway / delivery)
+  // — surface it prominently so kitchen / floor staff know how to fulfill.
+  const restaurantOrderType =
+    order.vertical === 'restaurant' && typeof (order.details as { orderType?: unknown }).orderType === 'string'
+      ? ((order.details as { orderType: string }).orderType as 'dine-in' | 'takeaway' | 'delivery')
+      : null;
+  const orderTypeLabel: Record<'dine-in' | 'takeaway' | 'delivery', string> = {
+    'dine-in':  'Dine In',
+    'takeaway': 'Takeaway',
+    'delivery': 'Delivery',
+  };
+
   return (
     <main className="min-h-screen bg-black text-white">
       <BuilderTabs siteId={params.id} />
@@ -214,7 +226,21 @@ export default function OrderDetailPage() {
             </dl>
           </section>
         )}
-        {addressDetails && addressDetails.deliveryAddress && (
+        {/* Restaurant: order type pill + delivery address (when applicable) */}
+        {restaurantOrderType && (
+          <section className="border border-white/10 rounded-lg p-4">
+            <h2 className="text-xs uppercase tracking-wider opacity-60 mb-3">Order type</h2>
+            <p className="text-base font-semibold">{orderTypeLabel[restaurantOrderType]}</p>
+            {restaurantOrderType === 'delivery' && addressDetails?.deliveryAddress && (
+              <>
+                <p className="text-xs uppercase tracking-wider opacity-60 mt-3 mb-1">Delivery address</p>
+                <p className="text-sm whitespace-pre-line">{addressDetails.deliveryAddress}</p>
+              </>
+            )}
+          </section>
+        )}
+        {/* Store: just the delivery address (no type picker) */}
+        {!restaurantOrderType && addressDetails?.deliveryAddress && (
           <section className="border border-white/10 rounded-lg p-4">
             <h2 className="text-xs uppercase tracking-wider opacity-60 mb-3">Delivery address</h2>
             <p className="text-sm whitespace-pre-line">{addressDetails.deliveryAddress}</p>
