@@ -272,6 +272,7 @@ function createDefaultSite(vertical: Vertical, name: string, ownerEmail = '', te
     updatedAt: new Date().toISOString(),
     customDomain: '',
     ownerEmail,
+    merchantId: '',
 
     brand: {
       businessName: name,

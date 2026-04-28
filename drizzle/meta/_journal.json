@@ -8,6 +8,13 @@
       "when": 1777139263043,
       "tag": "0000_lucky_robbie_robertson",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777392497233,
+      "tag": "0001_motionless_rogue",
+      "breakpoints": true
     }
   ]
 }

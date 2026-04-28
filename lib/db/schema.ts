@@ -15,6 +15,11 @@ export const sites = sqliteTable('sites', {
   vertical: text('vertical').notNull(), // 'hotel' | 'restaurant' | 'store' | 'travel'
   templateId: text('template_id').notNull().default(''),
   status: text('status').notNull().default('draft'), // 'draft' | 'published'
+  // Flot Merchant ID — the routing key that tells the Flot checkout where to
+  // send the buyer's money. One per site (a merchant with multiple sites
+  // gets a separate ID per site). Required to publish; nullable on the
+  // schema so a draft site can exist without it.
+  merchantId: text('merchant_id'),
   config: text('config', { mode: 'json' }).notNull(), // Full SiteConfig JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),

@@ -1,0 +1,1 @@
+ALTER TABLE `sites` ADD `merchant_id` text;

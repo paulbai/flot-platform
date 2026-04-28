@@ -170,6 +170,12 @@ export interface SiteConfig {
   updatedAt: string;
   customDomain: string;
   ownerEmail: string;
+  /**
+   * Flot Merchant ID — the routing key for the Flot checkout. Required
+   * to publish; empty string while the merchant hasn't entered one yet.
+   * Public-facing (returned by the public site config endpoint).
+   */
+  merchantId: string;
 
   brand: BrandConfig;
   businessInfo: BusinessInfo;

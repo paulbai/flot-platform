@@ -24,6 +24,10 @@ export async function GET(
     id: row.id,
     slug: row.slug,
     status: row.status as 'draft' | 'published',
+    // Merchant ID is the routing key for the Flot checkout — it's a public
+    // identifier (like Stripe's `pk_live_…`), so safe to expose. The buyer-
+    // side FlotCheckout component reads this and forwards to pay.flotme.ai.
+    merchantId: row.merchantId ?? '',
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

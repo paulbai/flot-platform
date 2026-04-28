@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -60,6 +60,9 @@ import {
   CheckCircle,
   Layers,
   Handshake,
+  Wallet,
+  AlertTriangle,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 import { useSiteBuilderStore } from '@/store/siteBuilderStore';
@@ -337,11 +340,17 @@ export default function SiteEditorPage() {
     unpublishSite,
   } = useSiteBuilderStore();
 
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ brand: true });
+  // Default-open the "Activate Payments" section so the Merchant ID field
+  // is the first thing a new merchant sees in the sidebar.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ payments: true, brand: true });
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishSlug, setPublishSlug] = useState('');
   const [slugError, setSlugError] = useState('');
+  // Used to scroll-into-view + focus the Merchant ID input when the merchant
+  // taps a disabled Publish button or fails the publish gate server-side.
+  const merchantIdInputRef = useRef<HTMLInputElement | null>(null);
+  const [merchantIdHighlight, setMerchantIdHighlight] = useState(false);
 
   const toggle = useCallback(
     (key: string) =>
@@ -384,7 +393,27 @@ export default function SiteEditorPage() {
 
   /* ─── Publish helpers ─── */
 
+  // The Flot Merchant ID gates Publish — without it, money has nowhere to
+  // land. We block the modal from opening, scroll the field into view, and
+  // pulse it briefly so the merchant can't miss what's missing.
+  const hasMerchantId = !!site?.merchantId?.trim();
+
+  function focusMerchantIdField() {
+    setOpenSections((prev) => ({ ...prev, payments: true }));
+    setMerchantIdHighlight(true);
+    // Wait one frame for the section to render, then scroll + focus.
+    requestAnimationFrame(() => {
+      merchantIdInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      merchantIdInputRef.current?.focus();
+    });
+    setTimeout(() => setMerchantIdHighlight(false), 2000);
+  }
+
   function openPublish() {
+    if (!hasMerchantId) {
+      focusMerchantIdField();
+      return;
+    }
     setPublishSlug(site!.slug);
     setSlugError('');
     setShowPublishModal(true);
@@ -494,13 +523,23 @@ export default function SiteEditorPage() {
           ) : null}
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={hasMerchantId ? { scale: 1.02 } : undefined}
+            whileTap={hasMerchantId ? { scale: 0.98 } : undefined}
             onClick={openPublish}
+            disabled={site.status !== 'published' && !hasMerchantId}
+            title={
+              site.status === 'published'
+                ? 'Update your published slug'
+                : hasMerchantId
+                  ? 'Publish your site'
+                  : 'Add your Flot Merchant ID to publish'
+            }
             className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
               site.status === 'published'
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-white text-black hover:bg-white/90'
+                : hasMerchantId
+                  ? 'bg-white text-black hover:bg-white/90'
+                  : 'bg-white/30 text-black/50 cursor-not-allowed'
             }`}
           >
             <Globe className="w-3.5 h-3.5" />
@@ -519,6 +558,100 @@ export default function SiteEditorPage() {
           <div className="px-4 py-3 border-b border-[#1a1a1a]">
             <h2 className="text-sm font-semibold truncate">{site.brand.businessName}</h2>
             <p className="text-[10px] text-[#555] mt-0.5 capitalize">{site.vertical} site</p>
+          </div>
+
+          {/* ─── ACTIVATE PAYMENTS — pinned at the top of the sidebar
+               because without a Flot Merchant ID the site can take orders
+               but the money has nowhere to land. The header gets a
+               warning glow when empty so a new merchant can't miss it. */}
+          <div
+            className={`border-b transition-colors ${
+              hasMerchantId
+                ? 'border-[#1a1a1a]'
+                : 'border-amber-500/40 bg-amber-500/[0.04]'
+            }`}
+          >
+            <button
+              onClick={() => toggle('payments')}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left"
+              aria-expanded={isOpen('payments')}
+            >
+              <span className="flex items-center gap-2">
+                {hasMerchantId ? (
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
+                <span className="flex flex-col">
+                  <span className="text-xs font-semibold flex items-center gap-2">
+                    Activate Payments
+                    {!hasMerchantId && (
+                      <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        Required
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[10px] text-[#666] mt-0.5">
+                    {hasMerchantId
+                      ? 'Site is ready to take real payments'
+                      : 'Needed before you can publish'}
+                  </span>
+                </span>
+              </span>
+              <Wallet className="w-4 h-4 text-[#555] shrink-0" />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {isOpen('payments') && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 space-y-3">
+                    <label className="block">
+                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#888] mb-1.5">
+                        Flot Merchant ID *
+                      </span>
+                      <input
+                        ref={merchantIdInputRef}
+                        type="text"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        value={site.merchantId ?? ''}
+                        onChange={(e) => updateSite(id, { merchantId: e.target.value })}
+                        placeholder="e.g. flot_123abc"
+                        className={`w-full px-3 py-2.5 rounded-lg bg-[#1a1a1a] border text-sm text-white placeholder:text-[#444] focus:ring-1 outline-none transition-colors ${
+                          merchantIdHighlight
+                            ? 'border-amber-400 ring-2 ring-amber-400/40 animate-pulse'
+                            : hasMerchantId
+                              ? 'border-emerald-500/30 focus:border-emerald-500/60 focus:ring-emerald-500/20'
+                              : 'border-amber-500/40 focus:border-amber-500/70 focus:ring-amber-500/20'
+                        }`}
+                      />
+                    </label>
+
+                    <p className="text-[11px] text-[#888] leading-relaxed">
+                      This routes buyer payments straight to your Flot account.
+                      Without it, your site can&apos;t go live.
+                    </p>
+
+                    <a
+                      href="https://pay.flotme.ai/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--flot)] hover:underline"
+                    >
+                      Don&apos;t have one? Create at pay.flotme.ai
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* ─── 0. TEMPLATE ─── */}

@@ -37,6 +37,7 @@ export const GET = auth(async (req, { params }: { params: Promise<{ id: string }
     id: row.id,
     slug: row.slug,
     status: row.status as 'draft' | 'published',
+    merchantId: row.merchantId ?? '',
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -71,12 +72,28 @@ export const PATCH = auth(async (req, { params }: { params: Promise<{ id: string
   // Update top-level columns if they changed
   const newStatus = (updates.status as string) || existing.status;
 
+  // The merchant ID is a top-level column on the row, not part of `config`.
+  // Read it out of the update payload (or fall back to the existing value).
+  const newMerchantId =
+    typeof updates.merchantId === 'string' ? updates.merchantId.trim() : existing.merchantId;
+
+  // Gate: publishing requires a non-empty Flot Merchant ID. The buyer-side
+  // FlotCheckout uses this value as the routing key for real payments, so a
+  // site without one would silently take orders that can't be settled.
+  if (newStatus === 'published' && !newMerchantId) {
+    return NextResponse.json(
+      { error: 'A Flot Merchant ID is required to publish your site. Add yours from pay.flotme.ai and try again.' },
+      { status: 400 },
+    );
+  }
+
   await db().update(sites)
     .set({
       config: merged,
       slug: (updates.slug as string) || existing.slug,
       status: newStatus,
       templateId: (updates.templateId as string) || existing.templateId,
+      merchantId: newMerchantId,
       updatedAt: new Date(),
     })
     .where(eq(sites.id, id));
