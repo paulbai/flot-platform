@@ -74,6 +74,9 @@ export default function BuilderDashboard() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  // Type-to-confirm input — user must type the site's business name exactly
+  // before the Delete button enables. Resets every time the modal opens.
+  const [deleteTypeInput, setDeleteTypeInput] = useState('');
 
   const templates: TemplateDefinition[] = useMemo(
     () => (selectedVertical ? getTemplatesForVertical(selectedVertical) : []),
@@ -110,6 +113,7 @@ export default function BuilderDashboard() {
   function handleDelete(id: string) {
     deleteSite(id);
     setDeleteConfirm(null);
+    setDeleteTypeInput('');
   }
 
   function closeModal() {
@@ -276,7 +280,13 @@ export default function BuilderDashboard() {
                 )}
 
                 <button
-                  onClick={() => setDeleteConfirm(site.id)}
+                  onClick={() => {
+                    // Reset the type-to-confirm input every time the modal
+                    // opens, so the previous typed value can't accidentally
+                    // satisfy a different site's check.
+                    setDeleteTypeInput('');
+                    setDeleteConfirm(site.id);
+                  }}
                   className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
                   title="Delete site"
                   aria-label="Delete site"
@@ -289,44 +299,97 @@ export default function BuilderDashboard() {
         </div>
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation — type-to-confirm guardrail.
+          Cancel is large + visually safe; Delete only enables when the buyer
+          types the exact business name. Stops mis-tap deletions cold. */}
       <AnimatePresence>
-        {deleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setDeleteConfirm(null)}
-          >
+        {deleteConfirm && (() => {
+          const siteToDelete = mySites.find((s) => s.id === deleteConfirm);
+          const expectedName = siteToDelete?.brand.businessName.trim() || '';
+          const typedNormalized = deleteTypeInput.trim();
+          const namesMatch = expectedName.length > 0 && typedNormalized === expectedName;
+
+          return (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-[#111] border border-[#222] rounded-xl p-6 w-full max-w-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+              style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+              onClick={() => { setDeleteConfirm(null); setDeleteTypeInput(''); }}
             >
-              <h3 className="text-sm font-semibold mb-2">Delete this site?</h3>
-              <p className="text-xs text-[#888] mb-6">
-                This action cannot be undone. The site and all its content will be permanently removed.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="text-xs text-[#888] hover:text-white transition-colors px-3 py-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDelete(deleteConfirm)}
-                  className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg px-4 py-2 text-xs font-medium hover:bg-red-500/20 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#111] border border-red-500/20 rounded-2xl p-6 w-full max-w-md"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-confirm-title"
+              >
+                {/* Icon + heading */}
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                    <Trash2 className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 id="delete-confirm-title" className="text-base font-semibold text-white">
+                      Delete this site?
+                    </h3>
+                    <p className="text-sm text-[#888] mt-1">
+                      This is permanent — the site, its content, and its order history will be gone.
+                    </p>
+                  </div>
+                </div>
+
+                {/* What's being deleted */}
+                {siteToDelete && (
+                  <div className="bg-[#0a0a0a] border border-[#222] rounded-lg px-4 py-3 mb-4">
+                    <p className="text-xs uppercase tracking-wider text-[#666] mb-1">Site</p>
+                    <p className="text-sm font-semibold text-white truncate">{siteToDelete.brand.businessName}</p>
+                    <p className="text-xs text-[#888] truncate font-mono mt-0.5">/site/{siteToDelete.slug}</p>
+                  </div>
+                )}
+
+                {/* Type-to-confirm */}
+                <label className="block mb-4">
+                  <span className="text-xs text-[#888] block mb-1.5">
+                    Type <span className="font-mono font-semibold text-white">{expectedName}</span> to confirm:
+                  </span>
+                  <input
+                    type="text"
+                    value={deleteTypeInput}
+                    onChange={(e) => setDeleteTypeInput(e.target.value)}
+                    placeholder={expectedName}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#1a1a1a] border border-[#333] text-white text-sm placeholder:text-[#444] focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 outline-none transition-colors"
+                  />
+                </label>
+
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+                  <button
+                    onClick={() => { setDeleteConfirm(null); setDeleteTypeInput(''); }}
+                    className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] text-sm font-medium text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDelete(deleteConfirm)}
+                    disabled={!namesMatch}
+                    className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25 hover:border-red-500/50 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-red-500/15 disabled:hover:border-red-500/30"
+                    title={namesMatch ? 'Delete site permanently' : 'Type the site name to enable'}
+                  >
+                    Delete site
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       {/* Create Modal */}
