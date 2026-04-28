@@ -4,9 +4,10 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { Hotel, UtensilsCrossed, Plane, ShoppingBag, ArrowRight, Sparkles, Globe, Palette, Zap, ChevronDown, Lock, CreditCard, Smartphone, Wallet, Check, Code2 } from 'lucide-react';
+import { Hotel, UtensilsCrossed, Plane, ShoppingBag, ArrowRight, Sparkles, Globe, Palette, Zap, ChevronDown, Check, Code2 } from 'lucide-react';
 import Link from 'next/link';
 import AuthModal from '@/components/auth/AuthModal';
+import LandingCheckoutDemo from '@/components/landing/LandingCheckoutDemo';
 
 const verticals = [
   {
@@ -354,13 +355,11 @@ export default function Home() {
                 ))}
               </div>
 
+              <p className="text-[var(--text-xs)] text-[var(--fog)] font-satoshi italic mb-4">
+                Try it now — tap a payment method and hit Pay on the live demo →
+              </p>
+
               <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/checkout-preview"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold bg-[var(--flot)] text-gray-900 hover:opacity-90 transition-colors"
-                >
-                  Try Live Demo <ArrowRight size={16} />
-                </Link>
                 <a
                   href="https://pay.flotme.ai/"
                   target="_blank"
@@ -374,7 +373,9 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Right: Checkout Card Mockup */}
+            {/* Right: Live interactive demo (replaces the static mockup +
+                "Try Live Demo" button — visitors can play with the checkout
+                right here instead of being navigated away). */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -382,100 +383,7 @@ export default function Home() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="flex justify-center"
             >
-              <div className="w-full max-w-[380px]">
-                {/* Checkout card */}
-                <div className="bg-white rounded-3xl overflow-hidden shadow-2xl shadow-[rgba(128,240,192,0.1)]">
-                  <div className="h-1" style={{ background: 'linear-gradient(90deg, var(--flot-grad-start), var(--flot-grad-end))' }} />
-                  <div className="p-6">
-                    {/* Header */}
-                    <div className="text-center mb-5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400 mb-1">Paying to</p>
-                      <h3 className="text-lg font-bold text-gray-900">Your Business</h3>
-                      <div className="flex items-center justify-center gap-1.5 mt-1.5">
-                        <img src="/flot-logo.png" alt="Flot" className="w-4 h-4 rounded" />
-                        <span className="text-[10px] font-medium text-[var(--flot-dim)]">Verified Merchant</span>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-gray-100 my-4" />
-
-                    {/* Amount */}
-                    <div className="text-center mb-5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-400 mb-2">Amount to Pay</p>
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="text-base font-semibold text-[var(--flot-dim)]">Le</span>
-                        <span className="text-4xl font-bold text-gray-900 tracking-tight">250.00</span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">USD 10.42</p>
-                    </div>
-
-                    <div className="h-px bg-gray-100 my-4" />
-
-                    {/* Payment methods */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-[var(--flot)] bg-[var(--flot)]/10">
-                        <div className="w-9 h-9 rounded-lg bg-[var(--flot)] flex items-center justify-center">
-                          <Wallet size={18} className="text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold text-gray-900">Pay with Flot</p>
-                          <p className="text-[10px] text-gray-500">Instant, zero fees</p>
-                        </div>
-                        <div className="w-5 h-5 rounded-full bg-[var(--flot)]/20 flex items-center justify-center">
-                          <Check size={12} className="text-[var(--flot)]" />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50">
-                        <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <Smartphone size={18} className="text-gray-500" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold text-gray-900">Mobile Money</p>
-                          <div className="flex gap-1 mt-0.5">
-                            <span className="text-[8px] font-bold text-orange-500 border border-orange-200 rounded px-1 py-px">ORANGE</span>
-                            <span className="text-[8px] font-bold text-blue-600 border border-blue-200 rounded px-1 py-px">AFRIMONEY</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50">
-                        <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <CreditCard size={18} className="text-gray-500" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold text-gray-900">Bank Card</p>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <span className="text-[8px] font-black italic text-blue-700">VISA</span>
-                            <span className="relative w-3 h-3">
-                              <span className="absolute inset-0 flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-red-500 opacity-80" />
-                                <span className="w-2 h-2 rounded-full bg-yellow-400 opacity-80 -ml-1" />
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Pay button */}
-                    <button className="w-full mt-5 py-3.5 rounded-2xl text-sm font-bold text-gray-900 bg-[var(--flot)] cursor-default">
-                      Pay Le 250.00 ($10.42)
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bottom badge */}
-                <div className="mt-4 flex flex-col items-center gap-1.5">
-                  <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2">
-                    <Lock size={12} className="text-[var(--flot)]" />
-                    <span className="text-xs font-medium text-white/70">
-                      Secured by <span className="text-[var(--flot)] font-semibold">Flot</span>
-                    </span>
-                  </div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/20">
-                    Fast &bull; Secure &bull; Everywhere
-                  </p>
-                </div>
-              </div>
+              <LandingCheckoutDemo />
             </motion.div>
           </div>
         </div>
