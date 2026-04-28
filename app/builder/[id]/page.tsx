@@ -503,15 +503,18 @@ export default function SiteEditorPage() {
         </span>
 
         <div className="ml-auto flex items-center gap-2">
-          {site.status === 'published' && (
-            <button
-              onClick={() => window.open(`/site/${site.slug}`, '_blank')}
-              className="flex items-center gap-1.5 text-xs text-[#888] hover:text-white transition-colors"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              Preview
-            </button>
-          )}
+          {/* Preview button — always available so the merchant can see how
+              their site looks before publishing. Opens the owner-only
+              /preview/[id] route in a new tab; auth is enforced by the
+              middleware so the link is safe to share-and-fail. */}
+          <button
+            onClick={() => window.open(`/preview/${id}`, '_blank', 'noopener')}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[#333] bg-[#1a1a1a] hover:bg-[#222] hover:border-[#444] text-white/80 hover:text-white transition-colors"
+            title="Preview your site in a new tab"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview
+          </button>
 
           {site.status === 'published' ? (
             <button
