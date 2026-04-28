@@ -39,28 +39,44 @@ interface CreateOrderBody {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^\+?[1-9]\d{6,14}$/;
+// Accept both Sierra Leone local format (e.g., 076800100) AND international
+// format (e.g., +23276800100). 7–15 digits with an optional leading +.
+// Previously this required `[1-9]` as the first digit, which rejected the
+// completely valid local format starting with `0`.
+const PHONE_RE = /^\+?\d{7,15}$/;
 
-function validateBody(body: unknown): body is CreateOrderBody {
-  if (!body || typeof body !== 'object') return false;
+type ValidationResult =
+  | { ok: true; body: CreateOrderBody }
+  | { ok: false; reason: string };
+
+function validateBody(body: unknown): ValidationResult {
+  if (!body || typeof body !== 'object') return { ok: false, reason: 'body is not an object' };
   const b = body as Record<string, unknown>;
-  if (typeof b.siteSlug !== 'string' || !b.siteSlug.trim()) return false;
-  if (b.status !== 'pending' && b.status !== 'confirmed') return false;
-  if (!b.customer || typeof b.customer !== 'object') return false;
+  if (typeof b.siteSlug !== 'string' || !b.siteSlug.trim()) return { ok: false, reason: 'siteSlug is required' };
+  if (b.status !== 'pending' && b.status !== 'confirmed') return { ok: false, reason: 'status must be pending or confirmed' };
+  if (!b.customer || typeof b.customer !== 'object') return { ok: false, reason: 'customer is required' };
   const c = b.customer as Record<string, unknown>;
-  if (typeof c.name !== 'string' || !c.name.trim()) return false;
+  if (typeof c.name !== 'string' || !c.name.trim()) return { ok: false, reason: 'customer.name is required' };
   // Email is optional for store/restaurant flows. If provided, it must be valid;
   // otherwise empty string is accepted (the merchant dashboard renders "—").
-  if (typeof c.email !== 'string') return false;
-  if (c.email.trim().length > 0 && !EMAIL_RE.test(c.email)) return false;
+  if (typeof c.email !== 'string') return { ok: false, reason: 'customer.email must be a string' };
+  if (c.email.trim().length > 0 && !EMAIL_RE.test(c.email)) return { ok: false, reason: 'customer.email is not a valid email' };
   // Phone is optional for dine-in. Same rule: accept empty, otherwise validate.
-  if (typeof c.phone !== 'string') return false;
-  if (c.phone.trim().length > 0 && !PHONE_RE.test(c.phone)) return false;
-  if (!Array.isArray(b.items) || b.items.length === 0) return false;
-  if (typeof b.subtotal !== 'number' || b.subtotal < 0) return false;
-  if (typeof b.total !== 'number' || b.total < 0) return false;
-  if (b.status === 'confirmed' && (typeof b.paymentMethod !== 'string' || !b.paymentMethod)) return false;
-  return true;
+  if (typeof c.phone !== 'string') return { ok: false, reason: 'customer.phone must be a string' };
+  if (c.phone.trim().length > 0 && !PHONE_RE.test(c.phone)) {
+    return { ok: false, reason: `customer.phone "${c.phone}" must be 7–15 digits with optional + prefix` };
+  }
+  if (!Array.isArray(b.items) || b.items.length === 0) return { ok: false, reason: 'items array is empty' };
+  if (typeof b.subtotal !== 'number' || !Number.isFinite(b.subtotal) || b.subtotal < 0) {
+    return { ok: false, reason: 'subtotal must be a non-negative number' };
+  }
+  if (typeof b.total !== 'number' || !Number.isFinite(b.total) || b.total < 0) {
+    return { ok: false, reason: 'total must be a non-negative number' };
+  }
+  if (b.status === 'confirmed' && (typeof b.paymentMethod !== 'string' || !b.paymentMethod)) {
+    return { ok: false, reason: 'paymentMethod is required when status=confirmed' };
+  }
+  return { ok: true, body: b as unknown as CreateOrderBody };
 }
 
 async function insertOrderWithRetry(args: {
@@ -121,18 +137,17 @@ async function insertOrderWithRetry(args: {
 }
 
 export async function POST(request: Request) {
-  let parsedBody: unknown = null;
   try {
-    parsedBody = await request.json();
-    if (!validateBody(parsedBody)) {
+    const parsedBody = (await request.json()) as unknown;
+    const validation = validateBody(parsedBody);
+    if (!validation.ok) {
       // Be loud about validation rejects so we can debug from Vercel logs why
       // a buyer's reservation didn't make it through. Includes the slug so we
-      // can correlate with the merchant report; redacts customer details.
+      // can correlate with the merchant report; redacts customer values.
       const safe = parsedBody && typeof parsedBody === 'object'
         ? {
             siteSlug: (parsedBody as Record<string, unknown>).siteSlug,
             status: (parsedBody as Record<string, unknown>).status,
-            vertical: (parsedBody as Record<string, unknown>).vertical,
             itemCount: Array.isArray((parsedBody as Record<string, unknown>).items)
               ? ((parsedBody as { items: unknown[] }).items.length)
               : 'n/a',
@@ -141,10 +156,13 @@ export async function POST(request: Request) {
               : 'n/a',
           }
         : 'not-an-object';
-      console.warn('[POST /api/orders] validation failed', JSON.stringify(safe));
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      console.warn(`[POST /api/orders] validation failed: ${validation.reason}`, JSON.stringify(safe));
+      // Surface the specific reason in the response body so the buyer-side
+      // banner can show "phone must be 7–15 digits" instead of "check your
+      // connection". The buyer-facing client decides how to render this.
+      return NextResponse.json({ error: validation.reason }, { status: 400 });
     }
-    const body = parsedBody;
+    const body = validation.body;
 
     const rows = await db().select().from(sites)
       .where(and(eq(sites.slug, body.siteSlug), eq(sites.status, 'published')));

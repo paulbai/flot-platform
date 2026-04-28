@@ -42,7 +42,7 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
   const [payDbOrderEmail, setPayDbOrderEmail] = useState<string | null>(null);
   const [activeCustomer, setActiveCustomer] = useState<CustomerDetails | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [reservedJustNow, setReservedJustNow] = useState<{ name: string; reference?: string; error?: boolean } | null>(null);
+  const [reservedJustNow, setReservedJustNow] = useState<{ name: string; reference?: string; error?: boolean; reason?: string } | null>(null);
   // Optimistic local count of reservations the buyer has just made on this device.
   // The drawer fetches the authoritative list on open — no eager pre-fetch from the
   // page (that was burning the lookup rate-limit bucket on every drawer toggle).
@@ -128,7 +128,14 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
       setActiveRoom(null);
     } catch (err) {
       console.error('[hotel reserve only]', err);
-      setReservedJustNow({ name: activeRoom.name, error: true });
+      // Surface the specific server reason if we got one (e.g., bad phone format)
+      // so the buyer can self-correct instead of seeing a generic "try again".
+      const reason = err instanceof Error ? err.message : '';
+      setReservedJustNow({
+        name: activeRoom.name,
+        error: true,
+        reason: reason && reason !== 'reserve failed' ? reason : undefined,
+      });
       setStep('idle');
       setActiveRoom(null);
     }
@@ -213,7 +220,9 @@ export default function SiteShopHotel({ config }: { config: SiteConfig }) {
                   {reservedJustNow.error ? (
                     <>
                       <strong>Couldn&apos;t save your reservation for {reservedJustNow.name}.</strong>{' '}
-                      Please check your connection and try again.
+                      {reservedJustNow.reason
+                        ? <>{reservedJustNow.reason}.</>
+                        : <>Please check your connection and try again.</>}
                     </>
                   ) : (
                     <>
