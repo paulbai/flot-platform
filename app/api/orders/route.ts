@@ -121,15 +121,35 @@ async function insertOrderWithRetry(args: {
 }
 
 export async function POST(request: Request) {
+  let parsedBody: unknown = null;
   try {
-    const body = (await request.json()) as unknown;
-    if (!validateBody(body)) {
+    parsedBody = await request.json();
+    if (!validateBody(parsedBody)) {
+      // Be loud about validation rejects so we can debug from Vercel logs why
+      // a buyer's reservation didn't make it through. Includes the slug so we
+      // can correlate with the merchant report; redacts customer details.
+      const safe = parsedBody && typeof parsedBody === 'object'
+        ? {
+            siteSlug: (parsedBody as Record<string, unknown>).siteSlug,
+            status: (parsedBody as Record<string, unknown>).status,
+            vertical: (parsedBody as Record<string, unknown>).vertical,
+            itemCount: Array.isArray((parsedBody as Record<string, unknown>).items)
+              ? ((parsedBody as { items: unknown[] }).items.length)
+              : 'n/a',
+            customerKeys: (parsedBody as { customer?: object }).customer
+              ? Object.keys((parsedBody as { customer: object }).customer)
+              : 'n/a',
+          }
+        : 'not-an-object';
+      console.warn('[POST /api/orders] validation failed', JSON.stringify(safe));
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
+    const body = parsedBody;
 
     const rows = await db().select().from(sites)
       .where(and(eq(sites.slug, body.siteSlug), eq(sites.status, 'published')));
     if (rows.length === 0) {
+      console.warn(`[POST /api/orders] site not found or unpublished: slug=${body.siteSlug}`);
       return NextResponse.json({ error: 'Site not found or not published' }, { status: 404 });
     }
     const site = rows[0];
@@ -141,6 +161,8 @@ export async function POST(request: Request) {
       ownerEmail: site.ownerEmail,
       vertical,
     });
+
+    console.log(`[POST /api/orders] created order ${created.reference} (${created.id}) for site=${body.siteSlug} status=${body.status}`);
 
     // Best-effort: send a confirmation email to the buyer if they provided
     // one. Doesn't await — we don't want a slow email provider to delay the

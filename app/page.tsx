@@ -195,7 +195,10 @@ export default function Home() {
             variants={fadeUp}
             className="text-[var(--text-sm)] text-[var(--fog)] font-satoshi mb-8"
           >
-            Call <a href="tel:+23277800100" className="text-[var(--flot)] font-semibold hover:underline">+23277800100</a>
+            Call{' '}
+            <a href="tel:+23280800100" className="text-[var(--flot)] font-semibold hover:underline">+23280800100</a>
+            {' '}/{' '}
+            <a href="tel:+23299800900" className="text-[var(--flot)] font-semibold hover:underline">+23299800900</a>
           </motion.p>
 
           <motion.div custom={0.55} initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap gap-3">

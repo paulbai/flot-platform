@@ -91,3 +91,40 @@ export const PATCH = auth(async (req, ctx: { params: Promise<{ id: string }> }) 
 
   return NextResponse.json({ success: true, status: nextStatus });
 }) as unknown as (req: Request, ctx: { params: Promise<{ id: string }> }) => Promise<Response>;
+
+/**
+ * Hard-delete an order and its line items. Restricted to TERMINAL states
+ * (`fulfilled` or `cancelled`) — active orders (pending, confirmed) must be
+ * cancelled first. This stops a merchant from accidentally nuking a live
+ * reservation, while letting them tidy up history once an order is done.
+ */
+export const DELETE = auth(async (req, ctx: { params: Promise<{ id: string }> }) => {
+  const userId = getUserId(req.auth);
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await ctx.params;
+  const rows = await db().select().from(orders)
+    .where(and(eq(orders.id, id), eq(orders.ownerEmail, userId)));
+  if (rows.length === 0) {
+    // 404 (not 403) on cross-tenant — we don't want to leak whether the
+    // order exists under a different merchant.
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+  const current = rows[0];
+
+  if (current.status !== 'fulfilled' && current.status !== 'cancelled') {
+    return NextResponse.json(
+      { error: 'Only fulfilled or cancelled orders can be deleted. Cancel the order first.' },
+      { status: 400 },
+    );
+  }
+
+  // Drizzle doesn't auto-cascade delete on Turso/libsql since we didn't
+  // declare FK constraints; do it manually in two statements.
+  await db().delete(orderItems).where(eq(orderItems.orderId, id));
+  await db().delete(orders).where(eq(orders.id, id));
+
+  return NextResponse.json({ success: true });
+}) as unknown as (req: Request, ctx: { params: Promise<{ id: string }> }) => Promise<Response>;

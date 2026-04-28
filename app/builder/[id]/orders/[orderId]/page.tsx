@@ -44,6 +44,10 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionInFlight, setActionInFlight] = useState<OrderStatus | null>(null);
+  // Delete affordance state — only relevant for terminal-state orders
+  // (fulfilled / cancelled). `pending` ones must be cancelled first.
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,6 +85,26 @@ export default function OrderDetailPage() {
       alert(err instanceof Error ? err.message : 'Failed to update status');
     } finally {
       setActionInFlight(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!order) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `status ${res.status}`);
+      }
+      // Bust the orders-list cache so the deleted row doesn't reappear in the
+      // 5-minute sessionStorage window. (Same key the orders list page writes.)
+      try { sessionStorage.removeItem(`flot:orders-cache:${params.id}`); } catch { /* fine */ }
+      router.push(`/builder/${params.id}/orders`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete order');
+      setDeleting(false);
+      setDeleteConfirming(false);
     }
   }
 
@@ -184,7 +208,39 @@ export default function OrderDetailPage() {
             </button>
           )}
           {!canFulfill && !canConfirm && !canCancel && (
-            <span className="text-xs opacity-50">No actions available — order is in a terminal state.</span>
+            <span className="text-xs opacity-50 self-center">Terminal state — no status changes available.</span>
+          )}
+
+          {/* Delete affordance — only for terminal-state orders. Inline two-step
+              confirm pattern: first click arms the action, second click commits. */}
+          {(order.status === 'fulfilled' || order.status === 'cancelled') && (
+            deleteConfirming ? (
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-xs opacity-70">Delete this order?</span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-semibold disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting…' : 'Yes, delete'}
+                </button>
+                <button
+                  onClick={() => setDeleteConfirming(false)}
+                  disabled={deleting}
+                  className="px-3 py-2 rounded-md border border-white/20 hover:bg-white/5 text-xs font-medium disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDeleteConfirming(true)}
+                className="ml-auto px-3 py-2 rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-medium"
+                title="Delete this order from the dashboard"
+              >
+                Delete order
+              </button>
+            )
           )}
         </div>
 
