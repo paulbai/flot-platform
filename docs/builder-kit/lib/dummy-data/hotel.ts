@@ -1,0 +1,40 @@
+import type { Room } from '../types';
+
+export const rooms: Room[] = [
+  {
+    id: 'deluxe-suite',
+    name: 'Deluxe Suite',
+    size: '65m²',
+    view: 'Ocean View',
+    pricePerNight: 420,
+    maxGuests: 2,
+    amenities: ['King Bed', 'Rainfall Shower', 'Private Balcony', 'Butler Service'],
+    images: ['https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80'],
+    available: true,
+    description: 'An expansive suite overlooking the ocean with floor-to-ceiling windows, Italian marble bathroom, and a private balcony for sunset viewing.',
+  },
+  {
+    id: 'grand-penthouse',
+    name: 'Grand Penthouse',
+    size: '180m²',
+    view: '360° City View',
+    pricePerNight: 1200,
+    maxGuests: 4,
+    amenities: ['2 Bedrooms', 'Private Pool', 'Full Kitchen', 'Personal Chef'],
+    images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80'],
+    available: true,
+    description: 'The pinnacle of luxury. Two-story penthouse with a private rooftop infinity pool, dedicated chef, and panoramic views of the city skyline.',
+  },
+  {
+    id: 'garden-villa',
+    name: 'Garden Villa',
+    size: '90m²',
+    view: 'Private Garden',
+    pricePerNight: 680,
+    maxGuests: 3,
+    amenities: ['King Bed', 'Open Air Bathroom', 'Private Garden', 'Pool Access'],
+    images: ['https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80'],
+    available: true,
+    description: 'A secluded villa surrounded by tropical gardens. Features an open-air bathroom with rain shower and a private terrace leading to the main pool.',
+  },
+];
